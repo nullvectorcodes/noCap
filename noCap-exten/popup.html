@@ -1,12 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>My Extension</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>noCap.</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h3>My Extension 🚀</h3>
-  <button id="actionBtn">Run Action</button>
+  <div class="popup-container">
+    <!-- Header -->
+    <div class="popup-header">
+      <div class="brand">noCap.</div>
+      <div class="status-indicator" id="statusIndicator">
+        <span class="status-dot"></span>
+        <span class="status-text">Ready</span>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="popup-content">
+      <div class="welcome-section">
+        <h2>Slang Decoder</h2>
+        <p>Select any text on the page to decode slang words and abbreviations</p>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="actions-section">
+        <button class="action-btn primary" id="analyzePageBtn">
+          <span class="btn-icon">🔍</span>
+          <span>Analyze Page</span>
+        </button>
+        <button class="action-btn secondary" id="toggleHighlightBtn">
+          <span class="btn-icon">✨</span>
+          <span id="toggleHighlightText">Enable Highlights</span>
+        </button>
+      </div>
+
+      <!-- Settings -->
+      <div class="settings-section">
+        <div class="setting-item">
+          <label for="autoHighlight">
+            <span>Auto-highlight slang</span>
+            <input type="checkbox" id="autoHighlight" checked>
+            <span class="toggle-switch"></span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <label for="showTooltips">
+            <span>Show tooltips</span>
+            <input type="checkbox" id="showTooltips" checked>
+            <span class="toggle-switch"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Recent Results -->
+      <div class="results-section" id="resultsSection" style="display: none;">
+        <h3>Recent Decodes</h3>
+        <div class="results-list" id="resultsList"></div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="popup-footer">
+      <a href="http://localhost:8000" target="_blank" class="footer-link">
+        Open noCap. Website
+      </a>
+    </div>
+  </div>
 
   <script src="popup.js"></script>
 </body>

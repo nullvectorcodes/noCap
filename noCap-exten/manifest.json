@@ -1,13 +1,25 @@
 {
   "manifest_version": 3,
-  "name": "Smart Word Hover",
-  "description": "Highlights searched words and shows meaning + pronunciation",
-  "version": "2.0",
+  "name": "noCap. - Slang Translator",
+  "description": "Decode slang, abbreviations, and informal language on any webpage",
+  "version": "3.0.0",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:3000/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
-      "css": ["style.css"]
+      "run_at": "document_idle",
+      "all_frames": false
     }
   ]
 }
