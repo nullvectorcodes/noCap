@@ -228,6 +228,56 @@ body {
     stroke: var(--purple-deep);
 }
 
+/* ===============================
+   BRAND LOGO
+   =============================== */
+.brand-logo {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--purple-main) 0%, var(--purple-deep) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    z-index: 1000;
+    cursor: default;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-shadow: 0 0 30px rgba(109, 40, 217, 0.3);
+    animation: brandFadeIn 0.6s ease-out;
+}
+
+.brand-logo:hover {
+    transform: translateY(-2px) scale(1.05);
+    filter: brightness(1.1);
+}
+
+@keyframes brandFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Dark mode brand logo */
+[data-theme="dark"] .brand-logo {
+    background: linear-gradient(135deg, var(--purple-main) 0%, #c4b5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 40px rgba(167, 139, 250, 0.4);
+}
+
+[data-theme="dark"] .brand-logo:hover {
+    filter: brightness(1.15);
+}
+
 
 /* ===============================
    MAIN WRAPPER
@@ -761,6 +811,113 @@ body {
     line-height: 1.6;
 }
 
+/* ===============================
+   ERROR MESSAGES
+   =============================== */
+.error-message {
+  align-self: flex-start;
+  max-width: 85%;
+  margin: 16px 0;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
+  border: 1.5px solid rgba(239, 68, 68, 0.3);
+  border-radius: 16px;
+  display: flex;
+  gap: 16px;
+  animation: errorFadeIn 0.4s ease-out;
+}
+
+.error-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.error-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.error-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #dc2626;
+  margin-bottom: 4px;
+}
+
+.error-description {
+  font-size: 14px;
+  color: var(--text-main);
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.error-solution {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+@keyframes errorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark mode error messages */
+[data-theme="dark"] .error-message {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.08) 100%);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+[data-theme="dark"] .error-title {
+  color: #f87171;
+}
+
+[data-theme="dark"] .error-description {
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .error-solution {
+  color: var(--text-muted);
+  border-top-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Mobile error messages */
+@media (max-width: 480px) {
+  .error-message {
+    max-width: 90%;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .error-icon {
+    font-size: 20px;
+  }
+
+  .error-title {
+    font-size: 15px;
+  }
+
+  .error-description {
+    font-size: 13px;
+  }
+
+  .error-solution {
+    font-size: 12px;
+  }
+}
+
 /* Optional subtle label (very ChatGPT-like) */
 .chat-ai .analysis-title {
     font-size: 13px;
@@ -1145,6 +1302,12 @@ body {
     height: 20px;
   }
 
+  .brand-logo {
+    font-size: 24px;
+    top: 16px;
+    left: 16px;
+  }
+
   .preloader-spinner-wrapper {
     width: 90px;
     height: 90px;
@@ -1275,6 +1438,12 @@ body {
     height: 18px;
   }
 
+  .brand-logo {
+    font-size: 22px;
+    top: 12px;
+    left: 12px;
+  }
+
   .preloader-spinner-wrapper {
     width: 80px;
     height: 80px;
@@ -1320,6 +1489,12 @@ body {
 @media (max-width: 360px) {
   .wrapper {
     padding: 16px 12px;
+  }
+
+  .brand-logo {
+    font-size: 20px;
+    top: 10px;
+    left: 10px;
   }
 
   .greeting h1 {
