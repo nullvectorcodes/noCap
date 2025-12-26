@@ -1,14 +1,30 @@
-alert("app.js loaded");
+import { remember } from "./chatMemory.js";
 
-import { remember, getMemory } from "./chatmemory.js";
+// Hide preloader when page loads
+window.addEventListener("load", () => {
+  const preloader = document.getElementById("preloader");
+  if (preloader) {
+    setTimeout(() => {
+      preloader.classList.add("hidden");
+    }, 300);
+  }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
 
+  let chatStarted = false;
+
   const input = document.getElementById("chatInput");
+  const inputSecondary = document.getElementById("chatInputSecondary");
   const button = document.getElementById("actionBtn");
+  const buttonSecondary = document.getElementById("actionBtnSecondary");
   const toggleBtn = document.getElementById("themeToggle");
   const root = document.documentElement;
   const responseArea = document.getElementById("responseArea");
+  
+  // Use the active input (primary initially, secondary after chat starts)
+  let activeInput = input;
+  let activeButton = button;
 
   /* ===============================
      THEME
@@ -25,197 +41,171 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ===============================
      AUTO RESIZE
      =============================== */
-  function autoResize() {
-    input.style.height = "auto";
-    input.style.height = Math.min(input.scrollHeight, 140) + "px";
+  function autoResize(el) {
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 140) + "px";
   }
 
-  input.addEventListener("input", () => {
-    autoResize();
-    if (input.value.trim()) {
-      button.classList.remove("inactive");
-      button.textContent = "↑";
+  function handleInputChange(el, btn) {
+    autoResize(el);
+    if (el.value.trim()) {
+      btn.classList.remove("inactive");
+      btn.textContent = "→";
     } else {
-      button.classList.add("inactive");
-      button.textContent = "Search";
+      btn.classList.add("inactive");
+      btn.textContent = "→";
     }
-  });
+  }
+
+  input.addEventListener("input", () => handleInputChange(input, button));
+  if (inputSecondary) {
+    inputSecondary.addEventListener("input", () => handleInputChange(inputSecondary, buttonSecondary));
+  }
 
   /* ===============================
-     SEND MESSAGE (WITH MEMORY)
+     SEND MESSAGE
      =============================== */
+
   async function sendMessage() {
-    const message = input.value.trim();
+    const message = activeInput.value.trim();
     if (!message) return;
 
-    button.disabled = true;
-    button.textContent = "…";
-    input.disabled = true;
+    /* === UI SWITCH (ONLY ONCE) === */
+    if (!chatStarted) {
+      chatStarted = true;
+      document.body.classList.add("chat-started");
 
-    responseArea.innerHTML = `<p style="margin-top:16px;">🧠 Analyzing…</p>`;
+      const greeting = document.getElementById("greetingScreen");
+      if (greeting) greeting.style.display = "none";
+
+      const chatBox = document.getElementById("chatBox");
+      if (chatBox) chatBox.style.display = "block";
+      
+      // Switch to secondary input
+      activeInput = inputSecondary;
+      activeButton = buttonSecondary;
+    }
+
+    /* === SHOW USER MESSAGE === */
+    responseArea.innerHTML += `
+    <div class="chat-user">
+      ${message}
+    </div>
+  `;
+
+    /* === LOCK INPUT === */
+    activeButton.disabled = true;
+    activeButton.textContent = "…";
+    activeInput.disabled = true;
 
     try {
-      // 1️⃣ remember user message
       remember("user", message);
 
-      const memory = getMemory();
-
-      // 2️⃣ build messages (NO system role)
-      const INSTRUCTIONS =
-        "You are noCap.\n" +
-        "You MUST respond with ONLY raw JSON.\n" +
-        "DO NOT add explanations, markdown, or extra text.\n" +
-        "DO NOT say anything before or after the JSON.\n" +
-        "If no slang exists, return empty arrays.\n\n" +
-        "JSON FORMAT (STRICT):\n" +
-        '{"highlighted_message":"", "slangs":[{"word":"","pronunciation":"","meaning":"","example":""}]}\n\n';
-
       const messages = [
-  {
-    role: "user",
-    content:
-      "You are noCap, an intent-aware slang analyzer.\n\n" +
-
-      "STEP 1 — UNDERSTAND INTENT:\n" +
-      "- Determine whether the message is casual, informal, or conversational.\n" +
-      "- If the tone is casual, evaluate words in their INFORMAL sense.\n\n" +
-
-      "STEP 2 — IDENTIFY SLANG & INFORMAL EVALUATORS:\n" +
-      "- Treat words as slang if they are used to casually judge, rate, or react to something.\n" +
-      "- Words like 'mid', 'fire', 'dead', 'lit', 'cringe' MUST be treated as slang when used as informal evaluation, even if they exist in standard English.\n\n" +
-
-      "STRICT EXCLUSION RULES:\n" +
-      "- Do NOT mark concrete nouns (party, movie, food, place) as slang.\n" +
-      "- Do NOT mark grammar helpers ('the', 'was', 'is', 'thi') unless they clearly add informal tone.\n\n" +
-
-      "PHRASE & CONTEXT RULES:\n" +
-      "- If an evaluative slang word appears alone (e.g. 'mid'), it is STILL slang.\n" +
-      "- If slang words appear consecutively, group them as ONE phrase.\n" +
-      "- Prefer semantic meaning over dictionary classification.\n\n" +
-
-      "MULTI-LANGUAGE RULES:\n" +
-      "- Detect slang across mixed languages (English, Hinglish, Telugu, Malayalam, etc.) when used casually.\n" +
-      "- Romanized regional slang is valid.\n\n" +
-
-      "OUTPUT RULES:\n" +
-      "- Analyze ONLY the message below.\n" +
-      "- Return EXACTLY ONE JSON object.\n" +
-      "- No explanations outside JSON.\n\n" +
-
-      "JSON FORMAT:\n" +
-      '{"highlighted_message":"", "slangs":[{"word":"","pronunciation":"","meaning":"","example":""}]}\n\n' +
-
-      "Message:\n" + message
-  }
-];
-
-
-
-
-
-
+        {
+          role: "user",
+          content:
+            "You are noCap, an intent-aware slang analyzer.\n\n" +
+            "STEP 1 — UNDERSTAND INTENT:\n" +
+            "- Determine whether the message is casual, informal, or conversational.\n" +
+            "- If the tone is casual, evaluate words in their INFORMAL sense.\n\n" +
+            "STEP 2 — IDENTIFY ALL SLANG & INFORMAL WORDS:\n" +
+            "- Identify EVERY slang word, abbreviation, or informal term in the message.\n" +
+            "- This includes: slang terms (mid, fr, cap, bet, etc.), abbreviations (fr = for real, etc.), informal expressions.\n" +
+            "- DO NOT skip any slang words - find ALL of them in the message.\n" +
+            "- Each slang word should have its own entry in the slangs array.\n\n" +
+            "JSON FORMAT:\n" +
+            '{"highlighted_message":"", "slangs":[{"word":"","pronunciation":"","meaning":"","example":""}]}\n\n' +
+            "IMPORTANT: Include ALL slang words found in the message. For example, if the message is 'the party was mid fr', you must identify BOTH 'mid' AND 'fr' as separate slang words.\n\n" +
+            "Message:\n" + message
+        }
+      ];
       const res = await fetch("http://localhost:3000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: messages,
+          messages,
           temperature: 0.1
         })
       });
 
       const data = await res.json();
-      console.log("RAW BACKEND RESPONSE:", data);
-
       if (!res.ok || !data.reply) {
         throw new Error("Invalid AI response");
       }
 
       const aiText = data.reply;
 
-      // 3️⃣ remember assistant reply
-      // remember("assistant", aiText);
-
-      /* ===============================
-         SAFE JSON EXTRACTION
-         =============================== */
       let parsed;
-
       try {
         parsed = JSON.parse(aiText);
       } catch {
         const match = aiText.match(/\{[\s\S]*\}/);
-        if (!match) {
-          console.error("RAW AI OUTPUT:", aiText);
-          throw new Error("No JSON found in response");
-        }
+        if (!match) throw new Error("No JSON found");
         parsed = JSON.parse(match[0]);
       }
 
-      const renderedMessage = parsed.highlighted_message
-        .replaceAll("<slang>", `<span class="slang-highlight">`)
-        .replaceAll("</slang>", "</span>");
-
-      const slangList = parsed.slangs.map(s => s.word).join(", ");
-
-      responseArea.innerHTML = `
-      <div class="message-preview">
-        ${renderedMessage}
-      </div>
-
-      <div style="margin-top:12px;font-size:14px;color:var(--text-muted);">
-        <strong>Detected slang${parsed.slangs.length > 1 ? "s" : ""}:</strong>
-        ${slangList}
-      </div>
-
-      <div class="slang-cards">
-        ${parsed.slangs.map(s => `
-          <div class="slang-card">
-            <div class="slang-word">${s.word}</div>
-
-            <div class="slang-pronunciation">
-              Pronunciation: <strong>/${s.pronunciation}/</strong>
+      if (parsed.slangs.length > 0) {
+        // Render each slang word in the new format
+        parsed.slangs.forEach(s => {
+          // Create intro message - make it natural and friendly
+          const meaningLower = s.meaning.toLowerCase();
+          const introMessage = `The word "${s.word}" means like ${meaningLower}`;
+          
+          responseArea.innerHTML += `
+            <div class="word-definition-container">
+              <div class="intro-message">${introMessage}</div>
+              <div class="dashed-separator"></div>
+              <div class="word-definition-card">
+                <div class="word-section">
+                  <div class="word-title">${s.word}</div>
+                  <div class="word-meaning">${s.meaning}</div>
+                </div>
+                ${s.example ? `
+                  <div class="example-bubble">
+                    ${s.example}
+                  </div>
+                ` : ''}
+              </div>
             </div>
-
-            <div class="slang-meaning">
-              <strong>Meaning:</strong> ${s.meaning}
-            </div>
-
-            <div style="margin-top:8px;font-size:13px;color:var(--text-muted);">
-              <strong>Example:</strong> <em>${s.example}</em>
-            </div>
-          </div>
-        `).join("")}
-      </div>
-    `;
-
+          `;
+        });
+        
+        // Auto-scroll to the response area smoothly
+        setTimeout(() => {
+          const firstWordContainer = responseArea.querySelector('.word-definition-container');
+          if (firstWordContainer) {
+            firstWordContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else {
+            responseArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 300);
+      }
     } catch (err) {
-      console.error(err);
-      responseArea.innerHTML = `
-      <p style="color:red;margin-top:16px;">
-        ❌ AI Error: ${err.message}
-      </p>
+      responseArea.innerHTML += `
+      <div class="chat-ai" style="color:red;">
+        ❌ ${err.message}
+      </div>
     `;
     }
 
-    /* ===============================
-       RESET UI
-       =============================== */
-    input.value = "";
-    input.style.height = "44px";
-    input.disabled = false;
-    button.disabled = false;
-    button.classList.add("inactive");
-    button.textContent = "Search";
-    input.focus();
+    /* === RESET INPUT === */
+    activeInput.value = "";
+    activeInput.style.height = "auto";
+    activeInput.disabled = false;
+    activeButton.disabled = false;
+    activeButton.classList.add("inactive");
+    activeButton.textContent = "→";
+    activeInput.focus();
   }
-
 
   /* ===============================
      EVENTS
      =============================== */
-  button.addEventListener("click", () => {
-    if (!button.classList.contains("inactive")) sendMessage();
-  });
+  button.addEventListener("click", sendMessage);
+  if (buttonSecondary) {
+    buttonSecondary.addEventListener("click", sendMessage);
+  }
 
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -223,5 +213,14 @@ document.addEventListener("DOMContentLoaded", () => {
       sendMessage();
     }
   });
+  
+  if (inputSecondary) {
+    inputSecondary.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  }
 
 });

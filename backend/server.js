@@ -41,8 +41,6 @@ app.post("/chat", async (req, res) => {
 
     const data = await response.json();
 
-    console.log("🧠 LM STUDIO RAW RESPONSE:\n", JSON.stringify(data, null, 2));
-
     // 🔴 HARD VALIDATION
     if (
       !data ||
