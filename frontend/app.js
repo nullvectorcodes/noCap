@@ -223,9 +223,9 @@ document.addEventListener("DOMContentLoaded", () => {
         solution: "Please wait a moment and try again. The backend is hosted on Render and may need a moment to wake up."
       },
       "SERVER_ERROR": {
-        title: "Server Error",
-        description: "The server encountered an issue processing your request.",
-        solution: "Check if LM Studio is running with a loaded model, and try again in a moment."
+        title: "Waking up AI…",
+        description: "Please try again in a few seconds.",
+        solution: "The backend server is starting up. This usually takes 30-60 seconds on Render's free tier."
       },
       "ENDPOINT_NOT_FOUND": {
         title: "Service Not Available",
@@ -359,33 +359,13 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       remember("user", message);
 
-      const messages = [
-        {
-          role: "user",
-          content:
-            "You are noCap, an intent-aware slang analyzer.\n\n" +
-            "STEP 1 — UNDERSTAND INTENT:\n" +
-            "- Determine whether the message is casual, informal, or conversational.\n" +
-            "- If the tone is casual, evaluate words in their INFORMAL sense.\n\n" +
-            "STEP 2 — IDENTIFY ALL SLANG & INFORMAL WORDS:\n" +
-            "- Identify EVERY slang word, abbreviation, or informal term in the message.\n" +
-            "- This includes: slang terms (mid, fr, cap, bet, etc.), abbreviations (fr = for real, etc.), informal expressions.\n" +
-            "- DO NOT skip any slang words - find ALL of them in the message.\n" +
-            "- Each slang word should have its own entry in the slangs array.\n\n" +
-            "JSON FORMAT:\n" +
-            '{"highlighted_message":"", "slangs":[{"word":"","pronunciation":"","meaning":"","example":""}]}\n\n' +
-            "IMPORTANT: Include ALL slang words found in the message. For example, if the message is 'the party was mid fr', you must identify BOTH 'mid' AND 'fr' as separate slang words.\n\n" +
-            "Message:\n" + message
-        }
-      ];
       let res;
       try {
         res = await fetch("https://nocap-xsa5.onrender.com/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            messages,
-            temperature: 0.1
+            message: message
           }),
           signal: AbortSignal.timeout(60000) // 60 second timeout for Render free tier
         });
@@ -400,7 +380,17 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error("NETWORK_ERROR");
       }
 
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonError) {
+        throw new Error("INVALID_RESPONSE");
+      }
+
       if (!res.ok) {
+        if (data && data.error) {
+          throw new Error(data.error);
+        }
         if (res.status === 0 || res.status >= 500) {
           throw new Error("SERVER_ERROR");
         } else if (res.status === 404) {
@@ -408,13 +398,6 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           throw new Error("REQUEST_ERROR");
         }
-      }
-
-      let data;
-      try {
-        data = await res.json();
-      } catch (jsonError) {
-        throw new Error("INVALID_RESPONSE");
       }
 
       if (!data || !data.reply) {
