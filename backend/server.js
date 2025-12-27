@@ -8,21 +8,13 @@ app.use(express.json({ limit: '10mb' }));
 app.use(cors());
 
 app.post("/chat", async (req, res) => {
-  console.log("🔥 ENTERED /chat ROUTE");
-  console.log("🔥 REQUEST BODY:", req.body);
-  
   try {
-    const { messages, temperature } = req.body;
+    const { message } = req.body;
 
-    // Validate messages
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ error: "messages must be a non-empty array" });
+    // Validate message exists and is a string
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({ error: "message must be a string" });
     }
-
-    // Validate and sanitize temperature
-    const safeTemperature = typeof temperature === 'number' 
-      ? Math.max(0, Math.min(2, temperature)) 
-      : 0.1;
 
     // Get Groq API key from environment variable
     const groqApiKey = process.env.GROQ_API_KEY;
@@ -36,11 +28,18 @@ app.post("/chat", async (req, res) => {
     // Prepare request payload for Groq
     const payload = {
       model: "llama3-8b-8192",
-      messages: messages,
-      temperature: safeTemperature
+      messages: [
+        { 
+          role: "system", 
+          content: "You explain Gen-Z slang clearly with meaning and one example." 
+        },
+        { 
+          role: "user", 
+          content: message 
+        }
+      ]
     };
 
-    console.log("🔥 ABOUT TO CALL GROQ");
     let groqResponse;
     try {
       groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
