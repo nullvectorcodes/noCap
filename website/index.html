@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>noCap. - Break Down Slang Like It's Nothing</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-text">noCap.</span>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#home" class="nav-link">Home</a></li>
+                <li><a href="#features" class="nav-link">Features</a></li>
+                <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+                <li><a href="#demo" class="nav-link">Slangs</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="btn btn-ghost" id="loginBtn">Log In</button>
+                <button class="btn btn-primary" id="signupBtn">Sign Up</button>
+            </div>
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-background">
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+            <div class="gradient-orb orb-3"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-text-content">
+                <div class="hero-badge fade-in">
+                    <span class="badge-icon">✨</span>
+                    <span>AI-Powered Slang Translator</span>
+                </div>
+                <h1 class="hero-title">
+                    <span class="title-line fade-in-up">Break Down</span>
+                    <span class="title-line fade-in-up delay-1">
+                        <span class="gradient-text">Slang</span> Like It's Nothing
+                    </span>
+                </h1>
+                <p class="hero-description fade-in-up delay-2">
+                    Understand modern language, abbreviations, and informal expressions with our intelligent slang analyzer. 
+                    No cap, it's that simple.
+                </p>
+                <div class="hero-cta fade-in-up delay-3">
+                    <button class="btn btn-large btn-primary" id="heroCta">
+                        Get Started Free
+                        <span class="btn-icon">→</span>
+                    </button>
+                    <button class="btn btn-large btn-secondary" id="watchDemo">
+                        Watch Demo
+                        <span class="btn-icon">▶</span>
+                    </button>
+                </div>
+                <div class="hero-stats fade-in-up delay-4">
+                    <div class="stat-item">
+                        <div class="stat-number" data-target="10000">0</div>
+                        <div class="stat-label">Words Decoded</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" data-target="5000">0</div>
+                        <div class="stat-label">Happy Users</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" data-target="99">0</div>
+                        <div class="stat-label">Accuracy Rate</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Hero Demo Card (Inside Hero Section) -->
+            <div class="hero-demo-card floating fade-in-up delay-5">
+            <div class="demo-header">
+                <div class="demo-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="demo-title">noCap.</div>
+            </div>
+            <div class="demo-content">
+                <div class="demo-message user-message">
+                    <span>this app is lit fr</span>
+                </div>
+                <div class="demo-response">
+                    <div class="demo-word">
+                        <div class="word-label">sick</div>
+                        <div class="word-meaning">of extraordinary quality or particularly impressive</div>
+                    </div>
+                    <div class="demo-word">
+                        <div class="word-label">fr</div>
+                        <div class="word-meaning">for real (emphasizing truthfulness)</div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">Features</div>
+                <h2 class="section-title">Why Choose noCap?</h2>
+                <p class="section-description">
+                    Powerful features designed to make understanding slang effortless and enjoyable.
+                </p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card feature-premium" data-aos="fade-up">
+                    <div class="feature-icon-wrapper">
+                        <div class="feature-icon">🎯</div>
+                        <div class="feature-glow"></div>
+                    </div>
+                    <h3 class="feature-title">Multi-Word Detection</h3>
+                    <p class="feature-description">
+                        Identifies ALL slang words in a single message, not just one. Get comprehensive breakdowns instantly.
+                    </p>
+                    <div class="feature-accent"></div>
+                </div>
+                <div class="feature-card feature-premium" data-aos="fade-up" data-delay="150">
+                    <div class="feature-icon-wrapper">
+                        <div class="feature-icon">🧠</div>
+                        <div class="feature-glow"></div>
+                    </div>
+                    <h3 class="feature-title">Intent-Aware Analysis</h3>
+                    <p class="feature-description">
+                        Understands context to provide accurate meanings. Smart enough to know when "cap" means lie or hat.
+                    </p>
+                    <div class="feature-accent"></div>
+                </div>
+                <div class="feature-card feature-premium" data-aos="fade-up" data-delay="300">
+                    <div class="feature-icon-wrapper">
+                        <div class="feature-icon">🔒</div>
+                        <div class="feature-glow"></div>
+                    </div>
+                    <h3 class="feature-title">Privacy-First</h3>
+                    <p class="feature-description">
+                        Runs locally with LM Studio. Your data stays on your machine—completely private and secure.
+                    </p>
+                    <div class="feature-accent"></div>
+                </div>
+                <div class="feature-card feature-premium" data-aos="fade-up" data-delay="450">
+                    <div class="feature-icon-wrapper">
+                        <div class="feature-icon">⚡</div>
+                        <div class="feature-glow"></div>
+                    </div>
+                    <h3 class="feature-title">Lightning Fast</h3>
+                    <p class="feature-description">
+                        Get instant results with real-time processing. No waiting, no delays—just quick and accurate translations.
+                    </p>
+                    <div class="feature-accent"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">How It Works</div>
+                <h2 class="section-title">Simple. Fast. Powerful.</h2>
+                <p class="section-description">
+                    Three simple steps to decode any slang expression.
+                </p>
+            </div>
+            <div class="steps-container">
+                <div class="step-item" data-aos="fade-right">
+                    <div class="step-number">01</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Type or Paste</h3>
+                        <p class="step-description">
+                            Enter any message containing slang, abbreviations, or informal language. 
+                            Works with single words or entire conversations.
+                        </p>
+                    </div>
+                    <div class="step-visual">
+                        <div class="step-card">
+                            <div class="step-input">that app is fire fr 🔥</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-item reverse" data-aos="fade-left">
+                    <div class="step-number">02</div>
+                    <div class="step-content">
+                        <h3 class="step-title">AI Analysis</h3>
+                        <p class="step-description">
+                            Our intelligent system analyzes context and intent to identify every slang word 
+                            in your message accurately.
+                        </p>
+                    </div>
+                    <div class="step-visual">
+                        <div class="step-card processing">
+                            <div class="processing-animation">
+                                <div class="processing-dot"></div>
+                                <div class="processing-dot"></div>
+                                <div class="processing-dot"></div>
+                            </div>
+                            <div class="processing-text">Analyzing...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-item" data-aos="fade-right">
+                    <div class="step-number">03</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Get Results</h3>
+                        <p class="step-description">
+                            Receive instant breakdowns with meanings, pronunciations, and real-world examples 
+                            for each slang term detected.
+                        </p>
+                    </div>
+                    <div class="step-visual">
+                        <div class="step-card result">
+                            <div class="result-item">
+                                <div class="result-word">fire</div>
+                                <div class="result-meaning">excellent or impressive</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-word">fr</div>
+                                <div class="result-meaning">for real (emphasizing truth)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slangs Kinetic Typography Section -->
+    <section class="slangs-section" id="demo">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">Popular Slangs</div>
+                <h2 class="section-title">Decode Modern Language</h2>
+                <p class="section-description">
+                    See the slangs we decode every day.
+                </p>
+            </div>
+            <div class="slangs-container">
+                <div class="slang-row row-1">
+                    <div class="slang-item">🔥 that was fire fr</div>
+                    <div class="slang-item">💯 no cap, that's facts</div>
+                    <div class="slang-item">😎 bet, I'm down for that</div>
+                    <div class="slang-item">✨ she really slayed that performance</div>
+                    <div class="slang-item">🚀 this food is bussin</div>
+                    <div class="slang-item">💪 fr, that's the truth</div>
+                    <div class="slang-item">🔥 that was fire fr</div>
+                    <div class="slang-item">💯 no cap, that's facts</div>
+                    <div class="slang-item">😎 bet, I'm down for that</div>
+                    <div class="slang-item">✨ she really slayed that performance</div>
+                </div>
+                <div class="slang-row row-2">
+                    <div class="slang-item">🎯 that movie was mid tbh</div>
+                    <div class="slang-item">🔥 the party was so lit</div>
+                    <div class="slang-item">💀 I'm dead, that's hilarious</div>
+                    <div class="slang-item">👑 he's the GOAT for real</div>
+                    <div class="slang-item">⚡ that's kinda sus ngl</div>
+                    <div class="slang-item">🎨 I'm just vibing right now</div>
+                    <div class="slang-item">🎯 that movie was mid tbh</div>
+                    <div class="slang-item">🔥 the party was so lit</div>
+                    <div class="slang-item">💀 I'm dead, that's hilarious</div>
+                    <div class="slang-item">👑 he's the GOAT for real</div>
+                </div>
+                <div class="slang-row row-3">
+                    <div class="slang-item">🚫 stop capping, that's not true</div>
+                    <div class="slang-item">💎 your drip is on point</div>
+                    <div class="slang-item">🔥 her makeup is on fleek</div>
+                    <div class="slang-item">✨ periodt, no further discussion</div>
+                    <div class="slang-item">💯 straight facts, no lies</div>
+                    <div class="slang-item">🎉 yolo, let's do it</div>
+                    <div class="slang-item">🚫 stop capping, that's not true</div>
+                    <div class="slang-item">💎 your drip is on point</div>
+                    <div class="slang-item">🔥 her makeup is on fleek</div>
+                    <div class="slang-item">✨ periodt, no further discussion</div>
+                </div>
+                <div class="slang-row row-4">
+                    <div class="slang-item">😤 don't flex on me like that</div>
+                    <div class="slang-item">🎯 lowkey, I'm feeling it</div>
+                    <div class="slang-item">🔥 that comeback was savage</div>
+                    <div class="slang-item">💪 I stan that artist</div>
+                    <div class="slang-item">✨ main character energy right there</div>
+                    <div class="slang-item">🚀 just send it, don't overthink</div>
+                    <div class="slang-item">😤 don't flex on me like that</div>
+                    <div class="slang-item">🎯 lowkey, I'm feeling it</div>
+                    <div class="slang-item">🔥 that comeback was savage</div>
+                    <div class="slang-item">💪 I stan that artist</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2 class="cta-title">Ready to Decode Slang Like a Pro?</h2>
+                <p class="cta-description">
+                    Join thousands of users who understand modern language better with noCap.
+                </p>
+                <div class="cta-buttons">
+                    <button class="btn btn-large btn-primary" id="ctaSignup">
+                        Get Started Free
+                        <span class="btn-icon">→</span>
+                    </button>
+                    <button class="btn btn-large btn-ghost" id="ctaLearnMore">
+                        Learn More
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="brand-text">noCap.</div>
+                    <p class="footer-tagline">
+                        Break down slang like it's nothing.
+                    </p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4 class="footer-title">Product</h4>
+                        <ul class="footer-list">
+                            <li><a href="#features">Features</a></li>
+                            <li><a href="#how-it-works">How It Works</a></li>
+                            <li><a href="#demo">Slangs</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4 class="footer-title">Company</h4>
+                        <ul class="footer-list">
+                            <li><a href="#about">About</a></li>
+                            <li><a href="#blog">Blog</a></li>
+                            <li><a href="#careers">Careers</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4 class="footer-title">Support</h4>
+                        <ul class="footer-list">
+                            <li><a href="#help">Help Center</a></li>
+                            <li><a href="#contact">Contact</a></li>
+                            <li><a href="#docs">Documentation</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 noCap. All rights reserved.</p>
+                <div class="footer-social">
+                    <a href="#" class="social-link">Twitter</a>
+                    <a href="#" class="social-link">GitHub</a>
+                    <a href="#" class="social-link">LinkedIn</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeLogin">&times;</button>
+            <h2 class="modal-title">Log In</h2>
+            <form class="modal-form" id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Log In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div class="modal" id="signupModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeSignup">&times;</button>
+            <h2 class="modal-title">Sign Up</h2>
+            <form class="modal-form" id="signupForm">
+                <div class="form-group">
+                    <label for="signupName">Name</label>
+                    <input type="text" id="signupName" class="form-input" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" class="form-input" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" class="form-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Sign Up</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
