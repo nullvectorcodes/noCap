@@ -216,9 +216,9 @@ app.post("/chat", async (req, res) => {
       : 0.1;
 
     // Get Groq API key from environment variable
-    const groqApiKey = process.env["no-cap"];
+    const groqApiKey = process.env.GROQ_API_KEY;
     if (!groqApiKey || typeof groqApiKey !== 'string' || groqApiKey.trim().length === 0) {
-      console.error("❌ /chat: Groq API key not found in environment variable 'no-cap'");
+      console.error("❌ /chat: Groq API key not found in environment variable 'GROQ_API_KEY'");
       return res.status(500).json({ 
         error: "Server configuration error" 
       });
