@@ -219,8 +219,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const errorMessages = {
       "NETWORK_ERROR": {
         title: "Connection Failed",
-        description: "Couldn't connect to the server. Please check your connection.",
-        solution: "Make sure the backend server is running on port 3000 and LM Studio is active."
+        description: "Couldn't connect to the server. The backend may be starting up (Render free tier can take 30-60 seconds to wake).",
+        solution: "Please wait a moment and try again. The backend is hosted on Render and may need a moment to wake up."
       },
       "SERVER_ERROR": {
         title: "Server Error",
@@ -380,15 +380,23 @@ document.addEventListener("DOMContentLoaded", () => {
       ];
       let res;
       try {
-        res = await fetch("http://localhost:3000/chat", {
+        res = await fetch("https://nocap-xsa5.onrender.com/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             messages,
             temperature: 0.1
-          })
+          }),
+          signal: AbortSignal.timeout(60000) // 60 second timeout for Render free tier
         });
       } catch (fetchError) {
+        if (fetchError.name === 'TimeoutError' || fetchError.name === 'AbortError') {
+          throw new Error("NETWORK_ERROR");
+        }
+        // Check if backend is sleeping (common on Render free tier)
+        if (fetchError.message && (fetchError.message.includes('Failed to fetch') || fetchError.message.includes('NetworkError'))) {
+          throw new Error("NETWORK_ERROR");
+        }
         throw new Error("NETWORK_ERROR");
       }
 

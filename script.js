@@ -241,7 +241,7 @@ demoSubmit?.addEventListener('click', async () => {
 
     try {
         // Call the backend API
-        const response = await fetch('http://localhost:3000/chat', {
+        const response = await fetch('https://nocap-xsa5.onrender.com/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -268,10 +268,14 @@ JSON FORMAT:
 Respond ONLY with valid JSON, no markdown, no explanations.`
                 }],
                 temperature: 0.1
-            })
+            }),
+            signal: AbortSignal.timeout(60000) // 60 second timeout for Render free tier
         });
 
         if (!response.ok) {
+            if (response.status === 0 || response.status >= 500) {
+                throw new Error('Backend may be starting up. Please wait a moment and try again.');
+            }
             throw new Error('API request failed');
         }
 
@@ -302,10 +306,13 @@ Respond ONLY with valid JSON, no markdown, no explanations.`
         }
     } catch (error) {
         console.error('Error:', error);
+        const errorMessage = error.message && error.message.includes('timeout') 
+            ? 'The backend is taking longer than expected. Render free tier may be starting up (30-60 seconds). Please try again in a moment.'
+            : error.message || 'Unable to analyze. The backend may be starting up. Please wait a moment and try again.';
         demoOutput.innerHTML = `
             <div class="demo-output-placeholder">
                 <div class="placeholder-icon">⚠️</div>
-                <div class="placeholder-text">Unable to analyze. Make sure the backend server is running on localhost:3000</div>
+                <div class="placeholder-text">${escapeHtml(errorMessage)}</div>
             </div>
         `;
     } finally {
