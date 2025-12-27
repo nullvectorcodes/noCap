@@ -454,11 +454,32 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Parse the response to extract meaning and example
-      const meaningMatch = replyText.match(/Meaning:\s*(.+?)(?:\n|Example:|$)/is);
-      const exampleMatch = replyText.match(/Example:\s*(.+?)$/is);
+      // Try multiple patterns to catch different formats
+      const meaningMatch = replyText.match(/Meaning:\s*(.+?)(?:\n|Example:|$)/is) || 
+                          replyText.match(/meaning:\s*(.+?)(?:\n|example:|$)/is) ||
+                          replyText.match(/Meaning\s*[:\-]\s*(.+?)(?:\n|Example|Example:|$)/is);
       
-      const meaning = meaningMatch ? meaningMatch[1].trim() : '';
-      const example = exampleMatch ? exampleMatch[1].trim() : '';
+      const exampleMatch = replyText.match(/Example:\s*(.+?)(?:\n|Meaning:|$)/is) ||
+                          replyText.match(/example:\s*(.+?)(?:\n|meaning:|$)/is) ||
+                          replyText.match(/Example\s*[:\-]\s*(.+?)$/is) ||
+                          replyText.match(/Example\s*[:\-]\s*(.+?)(?:\n|$)/is);
+      
+      let meaning = meaningMatch ? meaningMatch[1].trim() : '';
+      let example = exampleMatch ? exampleMatch[1].trim() : '';
+      
+      // If no example found, try to extract from meaning or generate a simple one
+      if (!example || example.toLowerCase().includes('no example') || example.length < 5) {
+        // Try to find example in the full text if not in Example: section
+        const fullExampleMatch = replyText.match(/"([^"]+)"/) || replyText.match(/example[:\s]+(.+?)(?:\n|$)/i);
+        if (fullExampleMatch) {
+          example = fullExampleMatch[1].trim();
+        } else if (meaning) {
+          // Create a simple example from the meaning if available
+          example = `"${detectedWord}" - ${meaning.split('.')[0]}`;
+        } else {
+          example = 'Example usage in context';
+        }
+      }
       
       // Extract the word from user message - try to find the most likely slang word
       // (usually shorter, non-common words, or the first word if message is short)
@@ -496,35 +517,40 @@ document.addEventListener("DOMContentLoaded", () => {
         contentContainer.style.marginTop = '8px';
         contentContainer.style.flexWrap = 'wrap';
 
-        // Word highlighted in purple (left)
+        // Word highlighted in purple (left) - increased size
         const wordDiv = document.createElement('div');
         wordDiv.className = 'slang-word-highlight';
         wordDiv.textContent = detectedWord;
         wordDiv.style.color = 'var(--purple-main)';
-        wordDiv.style.fontSize = '20px';
+        wordDiv.style.fontSize = '28px';
         wordDiv.style.fontWeight = '700';
-        wordDiv.style.padding = '10px 16px';
+        wordDiv.style.padding = '12px 20px';
         wordDiv.style.background = 'linear-gradient(135deg, rgba(109, 40, 217, 0.15), rgba(139, 92, 246, 0.15))';
-        wordDiv.style.borderRadius = '10px';
+        wordDiv.style.borderRadius = '12px';
         wordDiv.style.border = '2px solid var(--purple-main)';
         wordDiv.style.flexShrink = '0';
-        wordDiv.style.minWidth = '80px';
+        wordDiv.style.minWidth = '100px';
         wordDiv.style.textAlign = 'center';
+        wordDiv.style.display = 'flex';
+        wordDiv.style.alignItems = 'center';
+        wordDiv.style.justifyContent = 'center';
         contentContainer.appendChild(wordDiv);
 
-        // Example sentence (right)
+        // Example sentence (right) - rounded purple box
         const exampleDiv = document.createElement('div');
         exampleDiv.className = 'slang-example';
-        exampleDiv.textContent = example || 'No example provided';
+        exampleDiv.textContent = example;
         exampleDiv.style.flex = '1';
         exampleDiv.style.fontSize = '15px';
         exampleDiv.style.lineHeight = '1.6';
-        exampleDiv.style.color = 'var(--text)';
+        exampleDiv.style.color = '#ffffff';
         exampleDiv.style.fontStyle = 'italic';
-        exampleDiv.style.padding = '8px 12px';
-        exampleDiv.style.background = 'var(--panel)';
-        exampleDiv.style.borderRadius = '8px';
-        exampleDiv.style.border = '1px solid var(--border)';
+        exampleDiv.style.padding = '14px 18px';
+        exampleDiv.style.background = 'linear-gradient(135deg, var(--purple-main) 0%, rgba(139, 92, 246, 0.9) 100%)';
+        exampleDiv.style.borderRadius = '16px';
+        exampleDiv.style.border = 'none';
+        exampleDiv.style.boxShadow = '0 4px 12px rgba(109, 40, 217, 0.3)';
+        exampleDiv.style.minWidth = '200px';
         contentContainer.appendChild(exampleDiv);
 
         replyDiv.appendChild(contentContainer);
