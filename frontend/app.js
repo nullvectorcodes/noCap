@@ -445,7 +445,7 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error("EMPTY_RESPONSE");
       }
 
-      // data.reply is plain text, not JSON - render it directly
+      // data.reply is plain text, parse it to extract Meaning and Example
       const replyText = typeof data.reply === 'string' ? data.reply : String(data.reply || '');
 
       // Validate response length
@@ -453,12 +453,94 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error("INVALID_FORMAT");
       }
 
-      // Render the plain text reply with rich UI styling
+      // Parse the response to extract meaning and example
+      const meaningMatch = replyText.match(/Meaning:\s*(.+?)(?:\n|Example:|$)/is);
+      const exampleMatch = replyText.match(/Example:\s*(.+?)$/is);
+      
+      const meaning = meaningMatch ? meaningMatch[1].trim() : '';
+      const example = exampleMatch ? exampleMatch[1].trim() : '';
+      
+      // Extract the word from user message - try to find the most likely slang word
+      // (usually shorter, non-common words, or the first word if message is short)
+      const messageWords = message.trim().split(/\s+/);
+      let detectedWord = messageWords[0] || 'word';
+      
+      // If message is short (1-3 words), use first word; otherwise find shortest meaningful word
+      if (messageWords.length > 3) {
+        const shortWords = messageWords.filter(w => w.length >= 2 && w.length <= 8 && !['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those'].includes(w.toLowerCase()));
+        if (shortWords.length > 0) {
+          detectedWord = shortWords[0];
+        }
+      }
+
+      // Render structured UI with highlighted word and example
       try {
         const replyDiv = document.createElement('div');
         replyDiv.className = 'chat-ai';
         replyDiv.style.animation = 'fadeIn 0.4s ease-out';
-        replyDiv.textContent = replyText;
+
+        // Intro sentence at top
+        const introDiv = document.createElement('div');
+        introDiv.className = 'slang-intro';
+        introDiv.textContent = `Here's what "${detectedWord}" means:`;
+        introDiv.style.marginBottom = '12px';
+        introDiv.style.fontSize = '14px';
+        introDiv.style.color = 'var(--text-muted)';
+        replyDiv.appendChild(introDiv);
+
+        // Container for word (left) and example (right)
+        const contentContainer = document.createElement('div');
+        contentContainer.style.display = 'flex';
+        contentContainer.style.gap = '16px';
+        contentContainer.style.alignItems = 'flex-start';
+        contentContainer.style.marginTop = '8px';
+        contentContainer.style.flexWrap = 'wrap';
+
+        // Word highlighted in purple (left)
+        const wordDiv = document.createElement('div');
+        wordDiv.className = 'slang-word-highlight';
+        wordDiv.textContent = detectedWord;
+        wordDiv.style.color = 'var(--purple-main)';
+        wordDiv.style.fontSize = '20px';
+        wordDiv.style.fontWeight = '700';
+        wordDiv.style.padding = '10px 16px';
+        wordDiv.style.background = 'linear-gradient(135deg, rgba(109, 40, 217, 0.15), rgba(139, 92, 246, 0.15))';
+        wordDiv.style.borderRadius = '10px';
+        wordDiv.style.border = '2px solid var(--purple-main)';
+        wordDiv.style.flexShrink = '0';
+        wordDiv.style.minWidth = '80px';
+        wordDiv.style.textAlign = 'center';
+        contentContainer.appendChild(wordDiv);
+
+        // Example sentence (right)
+        const exampleDiv = document.createElement('div');
+        exampleDiv.className = 'slang-example';
+        exampleDiv.textContent = example || 'No example provided';
+        exampleDiv.style.flex = '1';
+        exampleDiv.style.fontSize = '15px';
+        exampleDiv.style.lineHeight = '1.6';
+        exampleDiv.style.color = 'var(--text)';
+        exampleDiv.style.fontStyle = 'italic';
+        exampleDiv.style.padding = '8px 12px';
+        exampleDiv.style.background = 'var(--panel)';
+        exampleDiv.style.borderRadius = '8px';
+        exampleDiv.style.border = '1px solid var(--border)';
+        contentContainer.appendChild(exampleDiv);
+
+        replyDiv.appendChild(contentContainer);
+
+        // Meaning below
+        if (meaning) {
+          const meaningDiv = document.createElement('div');
+          meaningDiv.className = 'slang-meaning';
+          meaningDiv.textContent = meaning;
+          meaningDiv.style.marginTop = '12px';
+          meaningDiv.style.fontSize = '15px';
+          meaningDiv.style.lineHeight = '1.6';
+          meaningDiv.style.color = 'var(--text)';
+          replyDiv.appendChild(meaningDiv);
+        }
+
         responseArea.appendChild(replyDiv);
         
         // Auto-scroll to the response area smoothly
