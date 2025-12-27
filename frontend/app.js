@@ -453,13 +453,11 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error("INVALID_FORMAT");
       }
 
-      // Sanitize and render the plain text reply
-      const safeReply = escapeHtml(replyText);
-      
+      // Render the plain text reply directly (textContent is safe, no escaping needed)
       try {
         const replyDiv = document.createElement('div');
         replyDiv.className = 'chat-assistant';
-        replyDiv.textContent = safeReply;
+        replyDiv.textContent = replyText;
         responseArea.appendChild(replyDiv);
         
         // Auto-scroll to the response area smoothly
