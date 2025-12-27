@@ -18,7 +18,14 @@ app.post("/chat", async (req, res) => {
     const payload = {
       model: "llama-3.1-8b-instant",
       messages: [
-        { role: "user", content: userMessage }
+        {
+          role: "system",
+          content: "You are noCap, a Gen-Z slang explainer. Always respond with:\nMeaning:\nExample:\nBe concise and clear."
+        },
+        {
+          role: "user",
+          content: userMessage
+        }
       ]
     };
 
@@ -51,6 +58,5 @@ app.post("/chat", async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("🔥🔥🔥 SERVER.JS IS RUNNING 🔥🔥🔥");
   console.log(`Server listening on port ${PORT}`);
 });
