@@ -445,117 +445,30 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error("EMPTY_RESPONSE");
       }
 
-      const aiText = typeof data.reply === 'string' ? data.reply : String(data.reply || '');
+      // data.reply is plain text, not JSON - render it directly
+      const replyText = typeof data.reply === 'string' ? data.reply : String(data.reply || '');
 
       // Validate response length
-      if (aiText.length > 100000) { // Prevent memory issues
+      if (replyText.length > 100000) { // Prevent memory issues
         throw new Error("INVALID_FORMAT");
       }
 
-      let parsed;
+      // Sanitize and render the plain text reply
+      const safeReply = escapeHtml(replyText);
+      
       try {
-        parsed = safeJsonParse(aiText, null);
-        if (!parsed) {
-          throw new Error("PARSE_ERROR");
-        }
-      } catch (parseError) {
-        // Try to extract JSON from the response
-        const match = aiText.match(/\{[\s\S]{1,100000}\}/);
-        if (!match || !match[0]) {
-          throw new Error("INVALID_FORMAT");
-        }
-        try {
-          parsed = safeJsonParse(match[0], null);
-          if (!parsed) {
-            throw new Error("PARSE_ERROR");
-          }
-        } catch {
-          throw new Error("PARSE_ERROR");
-        }
-      }
-
-      if (!parsed || !Array.isArray(parsed.slangs)) {
-        throw new Error("INVALID_STRUCTURE");
-      }
-
-      // Limit number of slang words to prevent abuse
-      const slangWords = parsed.slangs.slice(0, MAX_SLANG_WORDS);
-
-      if (slangWords.length > 0) {
-        // Render each slang word in the new format (safely)
-        slangWords.forEach(s => {
-          // Validate slang object structure
-          if (!validateSlangObject(s)) {
-            console.warn('Invalid slang object:', s);
-            return; // Skip invalid entries
-          }
-
-          // Sanitize all values
-          const safeWord = escapeHtml(s.word);
-          const safeMeaning = escapeHtml(s.meaning);
-          const safeMeaningLower = safeMeaning.toLowerCase();
-          const safeExample = s.example ? escapeHtml(s.example) : null;
-          const safeIntroMessage = escapeHtml(`The word "${safeWord}" means like ${safeMeaningLower}`);
-
-          // Create elements safely using DOM methods instead of innerHTML
-          try {
-            const container = document.createElement('div');
-            container.className = 'word-definition-container';
-
-            const introDiv = document.createElement('div');
-            introDiv.className = 'intro-message';
-            introDiv.textContent = safeIntroMessage;
-
-            const separator = document.createElement('div');
-            separator.className = 'dashed-separator';
-
-            const card = document.createElement('div');
-            card.className = 'word-definition-card';
-
-            const wordSection = document.createElement('div');
-            wordSection.className = 'word-section';
-
-            const wordTitle = document.createElement('div');
-            wordTitle.className = 'word-title';
-            wordTitle.textContent = safeWord;
-
-            const wordMeaning = document.createElement('div');
-            wordMeaning.className = 'word-meaning';
-            wordMeaning.textContent = safeMeaning;
-
-            wordSection.appendChild(wordTitle);
-            wordSection.appendChild(wordMeaning);
-
-            if (safeExample) {
-              const exampleBubble = document.createElement('div');
-              exampleBubble.className = 'example-bubble';
-              exampleBubble.textContent = safeExample;
-              card.appendChild(wordSection);
-              card.appendChild(exampleBubble);
-            } else {
-              card.appendChild(wordSection);
-            }
-
-            container.appendChild(introDiv);
-            container.appendChild(separator);
-            container.appendChild(card);
-
-            responseArea.appendChild(container);
-          } catch (renderError) {
-            console.error('Error rendering slang word:', renderError);
-            // Continue with next item instead of breaking
-          }
-        });
+        const replyDiv = document.createElement('div');
+        replyDiv.className = 'chat-assistant';
+        replyDiv.textContent = safeReply;
+        responseArea.appendChild(replyDiv);
         
         // Auto-scroll to the response area smoothly
         setTimeout(() => {
-          const firstWordContainer = responseArea.querySelector('.word-definition-container');
-          if (firstWordContainer) {
-            firstWordContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          } else {
-            responseArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
+          replyDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 300);
+      } catch (renderError) {
+        console.error('Error rendering reply:', renderError);
+        throw new Error("RENDER_ERROR");
       }
     } catch (err) {
       const errorMessage = getErrorMessage(err?.message || 'UNKNOWN_ERROR');
