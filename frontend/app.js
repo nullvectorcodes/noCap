@@ -293,16 +293,17 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Get and trim input
-    const rawMessage = (activeInput.value || '').trim();
+    // Get input value and trim it
+    const rawMessage = activeInput.value || '';
+    const trimmedMessage = rawMessage.trim();
     
-    // Validate input - do NOT send request if empty
-    if (!rawMessage || rawMessage.length === 0) {
+    // Validate input - do NOT send request if empty or whitespace-only
+    if (!trimmedMessage || trimmedMessage.length === 0) {
       return;
     }
 
     // Sanitize input
-    const sanitizedMessage = sanitizeInput(rawMessage);
+    const sanitizedMessage = sanitizeInput(trimmedMessage);
     
     // Double-check after sanitization
     if (!sanitizedMessage || sanitizedMessage.length === 0) {
@@ -366,13 +367,27 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       remember("user", message);
 
+      // Final validation: ensure message is not empty before sending
+      const finalMessage = message.trim();
+      if (!finalMessage || finalMessage.length === 0) {
+        // Unlock input if somehow we got here with empty message
+        if (activeButton) {
+          activeButton.disabled = false;
+          setTextContent(activeButton, "Send");
+        }
+        if (activeInput) {
+          activeInput.disabled = false;
+        }
+        return;
+      }
+
       let res;
       try {
         res = await fetch("https://nocap-xsa5.onrender.com/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            message: message
+            message: finalMessage
           }),
           signal: AbortSignal.timeout(60000) // 60 second timeout for Render free tier
         });
@@ -398,7 +413,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // Handle 400 (validation errors) as user input issues, not system failures
         if (res.status === 400) {
           // Don't show "Request Failed" for validation errors
-          // Just unlock the input and return silently
+          // Remove the user message div that was added
+          const userMessageDivs = responseArea.querySelectorAll('.chat-user');
+          if (userMessageDivs.length > 0) {
+            userMessageDivs[userMessageDivs.length - 1].remove();
+          }
+          // Unlock the input and return silently
           if (activeButton) {
             activeButton.disabled = false;
             setTextContent(activeButton, "Send");
