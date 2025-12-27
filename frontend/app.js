@@ -504,7 +504,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const introDiv = document.createElement('div');
         introDiv.className = 'slang-intro';
         introDiv.textContent = `The word "${detectedWord}" means like ${meaning ? meaning.split('.')[0].toLowerCase() : 'this'}`;
-        introDiv.style.marginBottom = '16px';
+        introDiv.style.marginBottom = '20px';
         introDiv.style.fontSize = '15px';
         introDiv.style.color = 'var(--text)';
         introDiv.style.lineHeight = '1.5';
@@ -513,24 +513,27 @@ document.addEventListener("DOMContentLoaded", () => {
         // Main content container with word/meaning on left and example on right
         const mainContainer = document.createElement('div');
         mainContainer.style.display = 'flex';
-        mainContainer.style.gap = '20px';
+        mainContainer.style.gap = '24px';
         mainContainer.style.alignItems = 'flex-start';
-        mainContainer.style.marginTop = '8px';
+        mainContainer.style.marginTop = '4px';
 
         // Left side: Word and meaning
         const leftSection = document.createElement('div');
         leftSection.style.flex = '1';
         leftSection.style.minWidth = '0';
+        leftSection.style.display = 'flex';
+        leftSection.style.flexDirection = 'column';
+        leftSection.style.gap = '12px';
 
-        // Word highlighted in purple - increased size
+        // Word highlighted in purple - large and bold
         const wordDiv = document.createElement('div');
         wordDiv.className = 'slang-word-highlight';
         wordDiv.textContent = detectedWord;
         wordDiv.style.color = 'var(--purple-main)';
-        wordDiv.style.fontSize = '32px';
+        wordDiv.style.fontSize = '36px';
         wordDiv.style.fontWeight = '700';
-        wordDiv.style.marginBottom = '8px';
-        wordDiv.style.lineHeight = '1.2';
+        wordDiv.style.lineHeight = '1.1';
+        wordDiv.style.margin = '0';
         leftSection.appendChild(wordDiv);
 
         // Meaning below the word
@@ -541,6 +544,7 @@ document.addEventListener("DOMContentLoaded", () => {
           meaningDiv.style.fontSize = '15px';
           meaningDiv.style.lineHeight = '1.6';
           meaningDiv.style.color = 'var(--text)';
+          meaningDiv.style.margin = '0';
           leftSection.appendChild(meaningDiv);
         }
 
@@ -550,18 +554,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const exampleDiv = document.createElement('div');
         exampleDiv.className = 'slang-example';
         exampleDiv.textContent = example;
-        exampleDiv.style.fontSize = '15px';
-        exampleDiv.style.lineHeight = '1.6';
-        exampleDiv.style.color = 'var(--purple-main)';
+        exampleDiv.style.fontSize = '14px';
+        exampleDiv.style.lineHeight = '1.5';
+        exampleDiv.style.color = 'var(--text)';
         exampleDiv.style.fontStyle = 'normal';
-        exampleDiv.style.padding = '12px 18px';
-        exampleDiv.style.background = 'rgba(139, 92, 246, 0.1)';
-        exampleDiv.style.borderRadius = '20px';
-        exampleDiv.style.border = '2px solid var(--purple-main)';
-        exampleDiv.style.boxShadow = '0 2px 8px rgba(109, 40, 217, 0.15)';
-        exampleDiv.style.maxWidth = 'fit-content';
-        exampleDiv.style.display = 'inline-block';
+        exampleDiv.style.padding = '10px 16px';
+        exampleDiv.style.background = 'rgba(139, 92, 246, 0.08)';
+        exampleDiv.style.borderRadius = '18px';
+        exampleDiv.style.border = '1.5px solid rgba(139, 92, 246, 0.3)';
+        exampleDiv.style.boxShadow = '0 1px 4px rgba(109, 40, 217, 0.1)';
+        exampleDiv.style.maxWidth = '300px';
         exampleDiv.style.flexShrink = '0';
+        exampleDiv.style.alignSelf = 'flex-start';
         mainContainer.appendChild(exampleDiv);
 
         replyDiv.appendChild(mainContainer);
