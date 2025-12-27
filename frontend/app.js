@@ -293,11 +293,18 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Get and sanitize input
-    const rawMessage = activeInput.value || '';
+    // Get and trim input
+    const rawMessage = (activeInput.value || '').trim();
+    
+    // Validate input - do NOT send request if empty
+    if (!rawMessage || rawMessage.length === 0) {
+      return;
+    }
+
+    // Sanitize input
     const sanitizedMessage = sanitizeInput(rawMessage);
     
-    // Validate input
+    // Double-check after sanitization
     if (!sanitizedMessage || sanitizedMessage.length === 0) {
       return;
     }
@@ -388,6 +395,20 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (!res.ok) {
+        // Handle 400 (validation errors) as user input issues, not system failures
+        if (res.status === 400) {
+          // Don't show "Request Failed" for validation errors
+          // Just unlock the input and return silently
+          if (activeButton) {
+            activeButton.disabled = false;
+            setTextContent(activeButton, "Send");
+          }
+          if (activeInput) {
+            activeInput.disabled = false;
+            activeInput.focus();
+          }
+          return;
+        }
         if (data && data.error) {
           throw new Error(data.error);
         }
