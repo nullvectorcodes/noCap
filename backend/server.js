@@ -189,6 +189,8 @@ app.get("/", (req, res) => {
 // 🧠 NEW: CHAT WITH MEMORY ENDPOINT (REQUIRED)
 // ---------------------------------------------
 app.post("/chat", async (req, res) => {
+  console.log("🔥 ENTERED /chat ROUTE");
+  console.log("🔥 REQUEST BODY:", req.body);
   try {
     const { message, temperature } = req.body;
 
@@ -234,6 +236,7 @@ app.post("/chat", async (req, res) => {
       temperature: safeTemperature
     };
 
+    console.log("🔥 ABOUT TO CALL GROQ");
     let response;
     try {
       response = await fetchWithTimeout("https://api.groq.com/openai/v1/chat/completions", {
