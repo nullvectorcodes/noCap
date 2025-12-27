@@ -453,10 +453,11 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error("INVALID_FORMAT");
       }
 
-      // Render the plain text reply directly (textContent is safe, no escaping needed)
+      // Render the plain text reply with rich UI styling
       try {
         const replyDiv = document.createElement('div');
-        replyDiv.className = 'chat-assistant';
+        replyDiv.className = 'chat-ai';
+        replyDiv.style.animation = 'fadeIn 0.4s ease-out';
         replyDiv.textContent = replyText;
         responseArea.appendChild(replyDiv);
         
