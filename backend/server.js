@@ -190,24 +190,28 @@ app.get("/", (req, res) => {
 // ---------------------------------------------
 app.post("/chat", async (req, res) => {
   try {
-    const { messages, temperature } = req.body;
+    const { message, temperature } = req.body;
 
-    // Validate messages
-    const validation = validateMessages(messages);
-    if (!validation.valid) {
-      return res.status(400).json({ error: validation.error });
+    // Validate message exists
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({ error: "message must be a string" });
+    }
+
+    const sanitizedMessage = sanitizeString(message);
+    if (sanitizedMessage.length === 0) {
+      return res.status(400).json({ error: "message cannot be empty" });
+    }
+
+    if (sanitizedMessage.length > MAX_MESSAGE_LENGTH) {
+      return res.status(400).json({ 
+        error: `message cannot exceed ${MAX_MESSAGE_LENGTH} characters` 
+      });
     }
 
     // Validate and sanitize temperature
     const safeTemperature = typeof temperature === 'number' 
       ? Math.max(0, Math.min(2, temperature)) 
       : 0.1;
-
-    // Sanitize messages content
-    const sanitizedMessages = messages.map(msg => ({
-      role: msg.role,
-      content: sanitizeString(msg.content)
-    }));
 
     // Get Groq API key from environment variable
     const groqApiKey = process.env["no-cap"];
@@ -218,12 +222,16 @@ app.post("/chat", async (req, res) => {
       });
     }
 
-    // Prepare request payload for Groq
+    // Prepare request payload for Groq with proper messages array format
     const payload = {
       model: "llama3-8b-8192",
-      messages: sanitizedMessages,
-      temperature: safeTemperature,
-      max_tokens: 2048
+      messages: [
+        {
+          role: "user",
+          content: sanitizedMessage
+        }
+      ],
+      temperature: safeTemperature
     };
 
     let response;
