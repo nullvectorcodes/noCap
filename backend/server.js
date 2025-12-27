@@ -209,32 +209,51 @@ app.post("/chat", async (req, res) => {
       content: sanitizeString(msg.content)
     }));
 
-    // Prepare request payload
+    // Get Groq API key from environment variable
+    const groqApiKey = process.env["no-cap"];
+    if (!groqApiKey || typeof groqApiKey !== 'string' || groqApiKey.trim().length === 0) {
+      console.error("❌ /chat: Groq API key not found in environment variable 'no-cap'");
+      return res.status(500).json({ 
+        error: "Server configuration error" 
+      });
+    }
+
+    // Prepare request payload for Groq
     const payload = {
-      model: "mistralai/mistral-7b-instruct-v0.3",
+      model: "llama3-8b-8192",
       messages: sanitizedMessages,
       temperature: safeTemperature,
-      max_tokens: 512
+      max_tokens: 2048
     };
 
     let response;
     try {
-      response = await fetchWithTimeout(LM_STUDIO_LOCAL, {
+      response = await fetchWithTimeout("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${groqApiKey.trim()}`
+        },
         body: JSON.stringify(payload)
       }, FETCH_TIMEOUT);
     } catch (fetchError) {
       console.error("❌ /chat fetch error:", fetchError.message);
       return res.status(503).json({ 
-        error: "Could not connect to LM Studio. Please ensure it is running." 
+        error: "Could not connect to Groq API" 
       });
     }
 
     if (!response.ok) {
-      console.error("❌ LM Studio response not OK:", response.status);
+      let errorDetail = '';
+      try {
+        const errorData = await response.json();
+        errorDetail = errorData.error?.message || `HTTP ${response.status}`;
+      } catch {
+        errorDetail = `HTTP ${response.status}`;
+      }
+      console.error("❌ Groq API response not OK:", response.status, errorDetail);
       return res.status(502).json({ 
-        error: "LM Studio returned an error" 
+        error: "Groq API returned an error" 
       });
     }
 
@@ -244,7 +263,7 @@ app.post("/chat", async (req, res) => {
     } catch (jsonError) {
       console.error("❌ /chat JSON parse error:", jsonError);
       return res.status(502).json({ 
-        error: "Invalid response from LM Studio" 
+        error: "Invalid response from Groq API" 
       });
     }
 
@@ -259,7 +278,7 @@ app.post("/chat", async (req, res) => {
     ) {
       console.error("❌ /chat invalid response structure:", data);
       return res.status(502).json({
-        error: "LM Studio returned invalid response format"
+        error: "Groq API returned invalid response format"
       });
     }
 
@@ -269,7 +288,7 @@ app.post("/chat", async (req, res) => {
     if (content.length > MAX_RESPONSE_SIZE) {
       console.error("❌ /chat response too large:", content.length);
       return res.status(502).json({
-        error: "Response from LM Studio is too large"
+        error: "Response from Groq API is too large"
       });
     }
 
