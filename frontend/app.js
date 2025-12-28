@@ -494,87 +494,56 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      // Render structured UI with highlighted word and example
+      // Render row-based dictionary UI
       try {
-        const replyDiv = document.createElement('div');
-        replyDiv.className = 'chat-ai';
-        replyDiv.style.animation = 'fadeIn 0.4s ease-out';
-
-        // Intro sentence at top
-        const introDiv = document.createElement('div');
-        introDiv.className = 'slang-intro';
-        introDiv.textContent = `The word "${detectedWord}" means like ${meaning ? meaning.split('.')[0].toLowerCase() : 'this'}`;
-        introDiv.style.marginBottom = '20px';
-        introDiv.style.fontSize = '15px';
-        introDiv.style.color = 'var(--text)';
-        introDiv.style.lineHeight = '1.5';
-        replyDiv.appendChild(introDiv);
-
-        // Main content container - vertical layout
-        const mainContainer = document.createElement('div');
-        mainContainer.style.display = 'flex';
-        mainContainer.style.flexDirection = 'column';
-        mainContainer.style.gap = '16px';
-        mainContainer.style.marginTop = '4px';
-
-        // Top row: Word and example side by side
-        const topRow = document.createElement('div');
-        topRow.style.display = 'flex';
-        topRow.style.gap = '80px';
-        topRow.style.alignItems = 'flex-start';
-        topRow.style.flexWrap = 'wrap';
-
-        // Word highlighted in purple - large and bold
-        const wordDiv = document.createElement('div');
-        wordDiv.className = 'slang-word-highlight';
-        wordDiv.textContent = detectedWord;
-        wordDiv.style.color = 'var(--purple-main)';
-        wordDiv.style.fontSize = '36px';
-        wordDiv.style.fontWeight = '700';
-        wordDiv.style.lineHeight = '1.1';
-        wordDiv.style.margin = '0';
-        wordDiv.style.flexShrink = '0';
-        topRow.appendChild(wordDiv);
-
-        // Example in pill-shaped chat bubble - aligned to left
-        const exampleDiv = document.createElement('div');
-        exampleDiv.className = 'slang-example';
-        exampleDiv.textContent = example;
-        exampleDiv.style.fontSize = '14px';
-        exampleDiv.style.lineHeight = '1.5';
-        exampleDiv.style.color = 'var(--text)';
-        exampleDiv.style.fontStyle = 'normal';
-        exampleDiv.style.padding = '10px 16px';
-        exampleDiv.style.background = 'rgba(139, 92, 246, 0.08)';
-        exampleDiv.style.borderRadius = '18px';
-        exampleDiv.style.border = '1.5px solid rgba(139, 92, 246, 0.3)';
-        exampleDiv.style.boxShadow = '0 1px 4px rgba(109, 40, 217, 0.1)';
-        exampleDiv.style.maxWidth = '400px';
-        exampleDiv.style.flex = '1';
-        exampleDiv.style.minWidth = '200px';
-        topRow.appendChild(exampleDiv);
-
-        mainContainer.appendChild(topRow);
-
-        // Meaning below the word and example
-        if (meaning) {
-          const meaningDiv = document.createElement('div');
-          meaningDiv.className = 'slang-meaning';
-          meaningDiv.textContent = meaning;
-          meaningDiv.style.fontSize = '15px';
-          meaningDiv.style.lineHeight = '1.6';
-          meaningDiv.style.color = 'var(--text)';
-          meaningDiv.style.margin = '0';
-          mainContainer.appendChild(meaningDiv);
+        // Ensure results container exists
+        let resultsContainer = responseArea.querySelector('.results');
+        if (!resultsContainer) {
+          resultsContainer = document.createElement('div');
+          resultsContainer.className = 'results';
+          responseArea.appendChild(resultsContainer);
         }
 
-        replyDiv.appendChild(mainContainer);
+        // Create entry row
+        const entry = document.createElement('div');
+        entry.className = 'entry';
 
-        responseArea.appendChild(replyDiv);
+        // Left section: word and meaning (65% width)
+        const entryLeft = document.createElement('div');
+        entryLeft.className = 'entry-left';
+
+        // Word
+        const wordDiv = document.createElement('div');
+        wordDiv.className = 'word';
+        wordDiv.textContent = detectedWord;
+        entryLeft.appendChild(wordDiv);
+
+        // Meaning
+        if (meaning) {
+          const meaningDiv = document.createElement('div');
+          meaningDiv.className = 'meaning';
+          meaningDiv.textContent = meaning;
+          entryLeft.appendChild(meaningDiv);
+        }
+
+        entry.appendChild(entryLeft);
+
+        // Right section: example pill (35% width)
+        const entryRight = document.createElement('div');
+        entryRight.className = 'entry-right';
+
+        const examplePill = document.createElement('div');
+        examplePill.className = 'example-pill';
+        examplePill.textContent = example;
+        entryRight.appendChild(examplePill);
+
+        entry.appendChild(entryRight);
+
+        resultsContainer.appendChild(entry);
         
-        // Auto-scroll to the response area smoothly
+        // Auto-scroll to the entry smoothly
         setTimeout(() => {
-          replyDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          entry.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 300);
       } catch (renderError) {
         console.error('Error rendering reply:', renderError);
