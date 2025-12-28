@@ -722,6 +722,8 @@ body {
     width: 100%;
     margin: 0;
     padding: 0;
+    text-align: left;
+    align-items: flex-start;
 }
 
 .entry {
@@ -731,6 +733,7 @@ body {
     margin: 0;
     padding: 16px 0;
     border-bottom: 1px solid var(--border);
+    text-align: left;
 }
 
 .entry:last-child {
@@ -744,14 +747,16 @@ body {
     align-items: flex-start;
     text-align: left;
     padding-right: 20px;
+    flex-shrink: 0;
 }
 
 .entry-right {
     width: 35%;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    text-align: right;
+    justify-content: flex-start;
+    text-align: left;
+    flex-shrink: 0;
 }
 
 .entry .word {
@@ -760,6 +765,7 @@ body {
     color: var(--purple-main);
     line-height: 1.2;
     margin: 0 0 8px 0;
+    text-align: left;
 }
 
 .entry .meaning {
@@ -768,6 +774,7 @@ body {
     color: var(--text);
     opacity: 0.8;
     margin: 0;
+    text-align: left;
 }
 
 .entry .example-pill {
@@ -1105,13 +1112,15 @@ body {
    RESPONSE AREA
    =============================== */
 .response-area {
-    max-width: 900px;
-    margin: 60px auto 120px;
+    max-width: 100%;
+    margin: 60px 0 120px 0;
     padding: 0 20px;
     display: flex;
     flex-direction: column;
     gap: 48px;
     animation: fadeIn .4s ease;
+    text-align: left;
+    align-items: flex-start;
 }
 
 /* Word Definition Container - Wraps intro and definition */
@@ -1301,7 +1310,7 @@ body {
   }
 
   .response-area {
-    margin: 40px auto 140px;
+    margin: 40px 0 140px 0;
     padding: 0 16px;
     gap: 32px;
   }
@@ -1429,7 +1438,7 @@ body {
   }
 
   .response-area {
-    margin: 32px auto 120px;
+    margin: 32px 0 120px 0;
     padding: 0 12px;
     gap: 28px;
   }
@@ -1595,7 +1604,7 @@ body {
   }
 
   .response-area {
-    margin: 24px auto 100px;
+    margin: 24px 0 100px 0;
   }
 }
 
