@@ -520,7 +520,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Top row: Word and example side by side
         const topRow = document.createElement('div');
         topRow.style.display = 'flex';
-        topRow.style.gap = '20px';
+        topRow.style.gap = '80px';
         topRow.style.alignItems = 'flex-start';
         topRow.style.flexWrap = 'wrap';
 
