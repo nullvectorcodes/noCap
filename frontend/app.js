@@ -65,6 +65,9 @@ function setTextContent(element, text) {
  * Validate theme value
  */
 function validateTheme(theme) {
+  if (typeof theme !== 'string') {
+    return 'light';
+  }
   return theme === 'light' || theme === 'dark' ? theme : 'light';
 }
 
@@ -167,18 +170,26 @@ function detectSlangWords(input) {
   const seenSlang = new Set();
 
   // Check for multi-word slang first (longer phrases)
-  const multiWordSlang = Array.from(SLANG_LIST).filter(slang => slang.includes(' '));
+  // Sort by length (longest first) to avoid partial matches
+  const multiWordSlang = Array.from(SLANG_LIST)
+    .filter(slang => slang.includes(' '))
+    .sort((a, b) => b.length - a.length);
+  
   for (const slang of multiWordSlang) {
     if (normalizedInput.includes(slang) && !seenSlang.has(slang)) {
       detectedSlang.push(slang);
       seenSlang.add(slang);
+      // Mark all words in this multi-word slang as seen to prevent single-word matches
+      slang.split(/\s+/).forEach(word => seenSlang.add(word.toLowerCase()));
     }
   }
 
-  // Check single-word slang
+  // Check single-word slang (only if not part of multi-word slang)
   for (const token of tokens) {
     const normalizedToken = token.toLowerCase().trim();
-    if (normalizedToken.length > 0 && SLANG_LIST.has(normalizedToken) && !seenSlang.has(normalizedToken)) {
+    if (normalizedToken.length > 0 && 
+        SLANG_LIST.has(normalizedToken) && 
+        !seenSlang.has(normalizedToken)) {
       detectedSlang.push(normalizedToken);
       seenSlang.add(normalizedToken);
     }
@@ -201,6 +212,7 @@ window.addEventListener("load", () => {
 document.addEventListener("DOMContentLoaded", () => {
 
   let chatStarted = false;
+  let isProcessing = false; // Prevent concurrent requests
 
   const input = getElementSafely("chatInput");
   const inputSecondary = getElementSafely("chatInputSecondary");
@@ -368,6 +380,11 @@ document.addEventListener("DOMContentLoaded", () => {
      =============================== */
 
   async function sendMessage() {
+    // Prevent concurrent requests
+    if (isProcessing) {
+      return;
+    }
+
     // Validate active input
     if (!activeInput || !activeButton || !responseArea) {
       console.error('Required elements not available');
@@ -398,6 +415,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const message = sanitizedMessage;
+
+    // Set processing flag
+    isProcessing = true;
 
     /* === UI SWITCH (ONLY ONCE) === */
     if (!chatStarted) {
@@ -465,27 +485,30 @@ document.addEventListener("DOMContentLoaded", () => {
       // Detect slang words using explicit list matching
       const detectedSlangWords = detectSlangWords(finalMessage);
       
-      // If no slang detected, don't call backend
+      // Process ALL user inputs, even if no slang detected
+      // User message is already rendered, so continue processing
       if (detectedSlangWords.length === 0) {
-        // Unlock input
+        // No slang detected - unlock input and return
+        // User message stays visible
+        isProcessing = false;
         if (activeButton) {
           activeButton.disabled = false;
+          activeButton.classList.add("inactive");
           setTextContent(activeButton, "→");
         }
         if (activeInput) {
           activeInput.disabled = false;
           activeInput.focus();
         }
-        // Remove user message since no slang was detected
-        const userMessageDivs = responseArea.querySelectorAll('.message.user');
-        if (userMessageDivs.length > 0) {
-          userMessageDivs[userMessageDivs.length - 1].remove();
-        }
         return;
       }
 
       // Use the first detected slang word (or send all if backend supports it)
       const slangToExplain = detectedSlangWords[0];
+
+      // Create AbortController for proper cleanup
+      const abortController = new AbortController();
+      const timeoutId = setTimeout(() => abortController.abort(), 60000);
 
       let res;
       try {
@@ -496,10 +519,12 @@ document.addEventListener("DOMContentLoaded", () => {
             message: finalMessage,
             slang: slangToExplain
           }),
-          signal: AbortSignal.timeout(60000) // 60 second timeout for Render free tier
+          signal: abortController.signal
         });
+        clearTimeout(timeoutId);
       } catch (fetchError) {
-        if (fetchError.name === 'TimeoutError' || fetchError.name === 'AbortError') {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'TimeoutError' || fetchError.name === 'AbortError' || fetchError.name === 'AbortSignal') {
           throw new Error("NETWORK_ERROR");
         }
         // Check if backend is sleeping (common on Render free tier)
@@ -526,9 +551,11 @@ document.addEventListener("DOMContentLoaded", () => {
             userMessageDivs[userMessageDivs.length - 1].remove();
           }
           // Unlock the input and return silently
+          isProcessing = false;
           if (activeButton) {
             activeButton.disabled = false;
-            setTextContent(activeButton, "Send");
+            activeButton.classList.add("inactive");
+            setTextContent(activeButton, "→");
           }
           if (activeInput) {
             activeInput.disabled = false;
@@ -577,18 +604,146 @@ document.addEventListener("DOMContentLoaded", () => {
       // Use the slang word that was sent to backend
       const detectedWord = slangToExplain;
       
-      // If no example found, try to extract from meaning or generate a simple one
-      if (!example || example.toLowerCase().includes('no example') || example.length < 5) {
-        // Try to find example in the full text if not in Example: section
-        const fullExampleMatch = replyText.match(/"([^"]+)"/) || replyText.match(/example[:\s]+(.+?)(?:\n|$)/i);
-        if (fullExampleMatch) {
-          example = fullExampleMatch[1].trim();
-        } else if (meaning) {
-          // Create a simple example from the meaning if available
-          example = `"${detectedWord}" - ${meaning.split('.')[0]}`;
-        } else {
-          example = 'Example usage in context';
+      /**
+       * Validate and clean example sentence
+       * Rules: ONE sentence, ≤15 words, never just the slang word, never raw input
+       */
+      function validateAndCleanExample(exampleText, slangWord, originalInput) {
+        if (!exampleText || exampleText.trim().length === 0) {
+          return null;
         }
+        
+        // Remove quotes if present
+        let cleaned = exampleText.replace(/^["']|["']$/g, '').trim();
+        
+        // Never use slang word alone as example
+        if (cleaned.toLowerCase() === slangWord.toLowerCase()) {
+          return null;
+        }
+        
+        // Never fallback to raw input text
+        if (cleaned.toLowerCase() === originalInput.toLowerCase().trim()) {
+          return null;
+        }
+        
+        // Extract first sentence only
+        const firstSentence = cleaned.split(/[.!?]+/)[0].trim();
+        if (firstSentence.length === 0) {
+          return null;
+        }
+        
+        // Count words
+        const wordCount = firstSentence.split(/\s+/).filter(w => w.length > 0).length;
+        
+        // Must be ≤15 words
+        if (wordCount > 15) {
+          // Truncate to 15 words, ensuring we don't break mid-sentence
+          const words = firstSentence.split(/\s+/).slice(0, 15);
+          let truncated = words.join(' ');
+          // Remove trailing punctuation that might be incomplete
+          truncated = truncated.replace(/[,;:]\s*$/, '');
+          return truncated + '.';
+        }
+        
+        // Ensure it ends with punctuation
+        if (!/[.!?]$/.test(firstSentence)) {
+          return firstSentence + '.';
+        }
+        
+        return firstSentence;
+      }
+      
+      /**
+       * Generate default example if needed
+       */
+      function generateDefaultExample(slangWord) {
+        const defaults = {
+          'fr': 'That was crazy, fr.',
+          'mid': 'The movie was mid, not great.',
+          'cap': 'No cap, that really happened.',
+          'nocap': 'No cap, I saw it myself.',
+          'no cap': 'No cap, that\'s the truth.',
+          'lowkey': 'I\'m lowkey excited about it.',
+          'highkey': 'I\'m highkey disappointed.',
+          'bet': 'Bet, I\'ll be there.',
+          'facts': 'Facts, you\'re absolutely right.',
+          'deadass': 'Deadass, I mean it.',
+          'sus': 'That seems sus to me.',
+          'slay': 'You slay in that outfit.',
+          'periodt': 'That\'s the truth, periodt.',
+          'period': 'That\'s final, period.',
+          'tea': 'Spill the tea already.',
+          'vibe': 'This place has good vibes.',
+          'vibes': 'I\'m getting good vibes here.',
+          'fire': 'That song is fire.',
+          'lit': 'The party was lit.',
+          'goat': 'He\'s the goat of basketball.'
+        };
+        
+        return defaults[slangWord.toLowerCase()] || `"${slangWord}" is used in casual conversation.`;
+      }
+      
+      // Clean and validate example
+      example = validateAndCleanExample(example, detectedWord, finalMessage);
+      
+      // If example is invalid, try to generate default
+      if (!example) {
+        const defaultExample = generateDefaultExample(detectedWord);
+        // Validate the default - it should always pass, but check anyway
+        example = validateAndCleanExample(defaultExample, detectedWord, finalMessage);
+        // If default also fails (shouldn't happen), use a safe fallback
+        if (!example) {
+          const safeFallback = `People use "${detectedWord}" in casual conversations.`;
+          example = validateAndCleanExample(safeFallback, detectedWord, finalMessage);
+          // Last resort - use a very simple example
+          if (!example) {
+            example = `Example: "${detectedWord}" is commonly used.`;
+          }
+        }
+      }
+      
+      // Final validation: ensure meaning exists and is not empty
+      if (!meaning || meaning.trim().length === 0) {
+        // Try to extract from full reply text
+        const sentences = replyText.split(/[.!?]+/).filter(s => s.trim().length > 0);
+        let fallbackMeaning = sentences.find(s => {
+          const trimmed = s.trim();
+          return trimmed.length > 10 && 
+                 !trimmed.toLowerCase().includes('example') &&
+                 !trimmed.toLowerCase().startsWith('meaning') &&
+                 trimmed.toLowerCase() !== detectedWord.toLowerCase();
+        });
+        
+        if (fallbackMeaning) {
+          meaning = fallbackMeaning.trim();
+        } else {
+          meaning = `"${detectedWord}" is a slang term used in casual conversation.`;
+        }
+      }
+      
+      // Ensure meaning is not too short
+      if (meaning.trim().length < 10) {
+        meaning = `"${detectedWord}" is a slang term used in casual conversation.`;
+      }
+
+      // Validate AI output before rendering
+      // Do NOT render if: only word, empty meaning, or empty/invalid example
+      const hasValidMeaning = meaning && meaning.trim().length > 0 && meaning.trim().toLowerCase() !== detectedWord.toLowerCase();
+      const hasValidExample = example && example.trim().length > 0 && example.trim().toLowerCase() !== detectedWord.toLowerCase();
+      
+      if (!hasValidMeaning || !hasValidExample) {
+        // Invalid output - unlock input and return
+        isProcessing = false;
+        if (activeButton) {
+          activeButton.disabled = false;
+          activeButton.classList.add("inactive");
+          setTextContent(activeButton, "→");
+        }
+        if (activeInput) {
+          activeInput.disabled = false;
+          activeInput.focus();
+        }
+        return;
       }
 
       // Render AI message in conversation timeline
@@ -607,15 +762,13 @@ document.addEventListener("DOMContentLoaded", () => {
         wordDiv.textContent = detectedWord;
         aiEntry.appendChild(wordDiv);
 
-        // Meaning
-        if (meaning) {
-          const meaningDiv = document.createElement('div');
-          meaningDiv.className = 'meaning';
-          meaningDiv.textContent = meaning;
-          aiEntry.appendChild(meaningDiv);
-        }
+        // Meaning (guaranteed to exist after validation)
+        const meaningDiv = document.createElement('div');
+        meaningDiv.className = 'meaning';
+        meaningDiv.textContent = meaning;
+        aiEntry.appendChild(meaningDiv);
 
-        // Example
+        // Example (guaranteed to exist after validation)
         const exampleDiv = document.createElement('div');
         exampleDiv.className = 'example';
         exampleDiv.textContent = example;
@@ -624,9 +777,12 @@ document.addEventListener("DOMContentLoaded", () => {
         aiMessage.appendChild(aiEntry);
         responseArea.appendChild(aiMessage);
         
-        // Auto-scroll to the AI message smoothly
-        setTimeout(() => {
-          aiMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Auto-scroll to the AI message smoothly (debounced)
+        clearTimeout(sendMessage.scrollTimeout);
+        sendMessage.scrollTimeout = setTimeout(() => {
+          if (aiMessage && aiMessage.parentNode) {
+            aiMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         }, 300);
       } catch (renderError) {
         console.error('Error rendering reply:', renderError);
@@ -637,6 +793,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderError(errorMessage);
     } finally {
       /* === RESET INPUT === */
+      isProcessing = false;
       try {
         if (activeInput) {
           activeInput.value = "";
@@ -664,6 +821,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
+      // Limit error messages to prevent accumulation
+      const existingErrors = responseArea.querySelectorAll('.error-message');
+      if (existingErrors.length > 3) {
+        // Remove oldest error messages, keep only last 3
+        for (let i = 0; i < existingErrors.length - 3; i++) {
+          existingErrors[i].remove();
+        }
+      }
+
       const errorDiv = document.createElement('div');
       errorDiv.className = 'error-message';
 
@@ -696,8 +862,9 @@ document.addEventListener("DOMContentLoaded", () => {
       errorDiv.appendChild(contentDiv);
       responseArea.appendChild(errorDiv);
 
-      // Auto-scroll to error
-      setTimeout(() => {
+      // Auto-scroll to error (debounced to prevent multiple scrolls)
+      clearTimeout(renderError.scrollTimeout);
+      renderError.scrollTimeout = setTimeout(() => {
         errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 100);
     } catch (e) {
