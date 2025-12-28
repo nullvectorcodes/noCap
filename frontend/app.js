@@ -510,20 +510,19 @@ document.addEventListener("DOMContentLoaded", () => {
         introDiv.style.lineHeight = '1.5';
         replyDiv.appendChild(introDiv);
 
-        // Main content container with word/meaning on left and example on right
+        // Main content container - vertical layout
         const mainContainer = document.createElement('div');
         mainContainer.style.display = 'flex';
-        mainContainer.style.gap = '24px';
-        mainContainer.style.alignItems = 'flex-start';
+        mainContainer.style.flexDirection = 'column';
+        mainContainer.style.gap = '16px';
         mainContainer.style.marginTop = '4px';
 
-        // Left side: Word and meaning
-        const leftSection = document.createElement('div');
-        leftSection.style.flex = '1';
-        leftSection.style.minWidth = '0';
-        leftSection.style.display = 'flex';
-        leftSection.style.flexDirection = 'column';
-        leftSection.style.gap = '12px';
+        // Top row: Word and example side by side
+        const topRow = document.createElement('div');
+        topRow.style.display = 'flex';
+        topRow.style.gap = '20px';
+        topRow.style.alignItems = 'flex-start';
+        topRow.style.flexWrap = 'wrap';
 
         // Word highlighted in purple - large and bold
         const wordDiv = document.createElement('div');
@@ -534,23 +533,10 @@ document.addEventListener("DOMContentLoaded", () => {
         wordDiv.style.fontWeight = '700';
         wordDiv.style.lineHeight = '1.1';
         wordDiv.style.margin = '0';
-        leftSection.appendChild(wordDiv);
+        wordDiv.style.flexShrink = '0';
+        topRow.appendChild(wordDiv);
 
-        // Meaning below the word
-        if (meaning) {
-          const meaningDiv = document.createElement('div');
-          meaningDiv.className = 'slang-meaning';
-          meaningDiv.textContent = meaning;
-          meaningDiv.style.fontSize = '15px';
-          meaningDiv.style.lineHeight = '1.6';
-          meaningDiv.style.color = 'var(--text)';
-          meaningDiv.style.margin = '0';
-          leftSection.appendChild(meaningDiv);
-        }
-
-        mainContainer.appendChild(leftSection);
-
-        // Right side: Example in pill-shaped chat bubble
+        // Example in pill-shaped chat bubble - aligned to left
         const exampleDiv = document.createElement('div');
         exampleDiv.className = 'slang-example';
         exampleDiv.textContent = example;
@@ -563,10 +549,24 @@ document.addEventListener("DOMContentLoaded", () => {
         exampleDiv.style.borderRadius = '18px';
         exampleDiv.style.border = '1.5px solid rgba(139, 92, 246, 0.3)';
         exampleDiv.style.boxShadow = '0 1px 4px rgba(109, 40, 217, 0.1)';
-        exampleDiv.style.maxWidth = '300px';
-        exampleDiv.style.flexShrink = '0';
-        exampleDiv.style.alignSelf = 'flex-start';
-        mainContainer.appendChild(exampleDiv);
+        exampleDiv.style.maxWidth = '400px';
+        exampleDiv.style.flex = '1';
+        exampleDiv.style.minWidth = '200px';
+        topRow.appendChild(exampleDiv);
+
+        mainContainer.appendChild(topRow);
+
+        // Meaning below the word and example
+        if (meaning) {
+          const meaningDiv = document.createElement('div');
+          meaningDiv.className = 'slang-meaning';
+          meaningDiv.textContent = meaning;
+          meaningDiv.style.fontSize = '15px';
+          meaningDiv.style.lineHeight = '1.6';
+          meaningDiv.style.color = 'var(--text)';
+          meaningDiv.style.margin = '0';
+          mainContainer.appendChild(meaningDiv);
+        }
 
         replyDiv.appendChild(mainContainer);
 
