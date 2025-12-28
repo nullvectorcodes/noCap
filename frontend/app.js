@@ -107,6 +107,87 @@ function validateSlangObject(slang) {
 const MAX_INPUT_LENGTH = 2000;
 const MAX_SLANG_WORDS = 20; // Limit to prevent abuse
 
+// Predefined slang list - explicit matches only
+// Set automatically removes duplicates
+const SLANG_LIST = new Set([
+  // Single word slang
+  'mid', 'fr', 'cap', 'nocap', 'lowkey', 'highkey', 'bet', 'facts', 'deadass', 'sus',
+  'bussin', 'bussin\'', 'slaps', 'vibe', 'vibes', 'vibing', 'vibin', 'slay', 'slayed',
+  'slaying', 'periodt', 'period', 'tea', 'spill', 'spilling', 'shook', 'stan',
+  'stanning', 'stanned', 'simp', 'simping', 'simped', 'ghost', 'ghosting', 'ghosted',
+  'flex', 'flexing', 'flexed', 'clout', 'salty', 'extra', 'snatched', 'snatch',
+  'snatching', 'goat', 'goated', 'fire', 'fuego', 'lit', 'frfr', 'ong', 'ongod',
+  'tbh', 'tb', 'ngl', 'yolo', 'fomo', 'jomo', 'smh', 'imo', 'imho', 'irl', 'dm',
+  'pm', 'lol', 'lmao', 'lmfao', 'rofl', 'wtf', 'omg', 'omfg', 'ttyl', 'brb', 'gtg',
+  'wyd', 'hmu', 'fyi', 'asap', 'rn', 'idk', 'idek', 'ikr', 'ik', 'yeet', 'yeeted',
+  'yeeting', 'drip', 'dripping', 'dripped', 'bop', 'bops', 'banger', 'bangers',
+  'cringe', 'cringy', 'cringey', 'based', 'woke', 'cancel', 'cancelled', 'canceling',
+  'ship', 'shipping', 'shipped', 'otp', 'canon', 'headcanon', 'fanon', 'thirsty',
+  'thirst', 'thirsting', 'thirsted', 'breadcrumb', 'breadcrumbing', 'breadcrumbed',
+  'zodiac', 'mood', 'same', 'wig', 'savage', 'savagery', 'roast', 'roasting',
+  'roasted', 'burn', 'burning', 'burned', 'burnt', 'drag', 'dragging', 'dragged',
+  'salt', 'salting', 'salted',
+  // Multi-word slang (checked first)
+  'no cap', 'low key', 'high key', 'fr fr', 'dead ass', 'on god', 'ngl fr',
+  'and that\'s on period', 'and that\'s on periodt', 'spill the tea', 'spill tea',
+  'throwing shade', 'threw shade', 'read for filth', 'read to filth',
+  'wig snatched', 'wig flew', 'wig flew off', 'the goat', 'goat status',
+  'being extra', 'clap back', 'clapback', 'clapping back', 'clapped back',
+  'dragged for filth', 'clout chasing', 'zodiac sign', 'same energy',
+  'same vibes', 'vibe check'
+]);
+
+/**
+ * Tokenize and normalize input text
+ */
+function tokenizeInput(text) {
+  if (typeof text !== 'string') {
+    return [];
+  }
+  // Split by whitespace and punctuation, but keep words
+  return text
+    .toLowerCase()
+    .replace(/[.,!?;:()\[\]{}'"]/g, ' ')
+    .split(/\s+/)
+    .filter(token => token.length > 0);
+}
+
+/**
+ * Detect slang words from input using explicit list matching
+ * Returns array of detected slang terms in order of appearance
+ */
+function detectSlangWords(input) {
+  if (typeof input !== 'string' || input.trim().length === 0) {
+    return [];
+  }
+
+  const normalizedInput = input.toLowerCase().trim();
+  const tokens = tokenizeInput(normalizedInput);
+  const detectedSlang = [];
+  const seenSlang = new Set();
+
+  // Check for multi-word slang first (longer phrases)
+  const multiWordSlang = Array.from(SLANG_LIST).filter(slang => slang.includes(' '));
+  for (const slang of multiWordSlang) {
+    if (normalizedInput.includes(slang) && !seenSlang.has(slang)) {
+      detectedSlang.push(slang);
+      seenSlang.add(slang);
+    }
+  }
+
+  // Check single-word slang
+  for (const token of tokens) {
+    const normalizedToken = token.toLowerCase().trim();
+    if (normalizedToken.length > 0 && SLANG_LIST.has(normalizedToken) && !seenSlang.has(normalizedToken)) {
+      detectedSlang.push(normalizedToken);
+      seenSlang.add(normalizedToken);
+    }
+  }
+
+  // Remove duplicates while preserving order
+  return Array.from(new Set(detectedSlang));
+}
+
 // Hide preloader when page loads
 window.addEventListener("load", () => {
   const preloader = getElementSafely("preloader");
@@ -343,7 +424,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* === SHOW USER MESSAGE (SAFELY) === */
     try {
       const userMessageDiv = document.createElement('div');
-      userMessageDiv.className = 'chat-user';
+      userMessageDiv.className = 'message user';
       userMessageDiv.textContent = message; // Use textContent for safety
       responseArea.appendChild(userMessageDiv);
     } catch (e) {
@@ -381,13 +462,39 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // Detect slang words using explicit list matching
+      const detectedSlangWords = detectSlangWords(finalMessage);
+      
+      // If no slang detected, don't call backend
+      if (detectedSlangWords.length === 0) {
+        // Unlock input
+        if (activeButton) {
+          activeButton.disabled = false;
+          setTextContent(activeButton, "→");
+        }
+        if (activeInput) {
+          activeInput.disabled = false;
+          activeInput.focus();
+        }
+        // Remove user message since no slang was detected
+        const userMessageDivs = responseArea.querySelectorAll('.message.user');
+        if (userMessageDivs.length > 0) {
+          userMessageDivs[userMessageDivs.length - 1].remove();
+        }
+        return;
+      }
+
+      // Use the first detected slang word (or send all if backend supports it)
+      const slangToExplain = detectedSlangWords[0];
+
       let res;
       try {
         res = await fetch("https://nocap-xsa5.onrender.com/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            message: finalMessage
+            message: finalMessage,
+            slang: slangToExplain
           }),
           signal: AbortSignal.timeout(60000) // 60 second timeout for Render free tier
         });
@@ -414,7 +521,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (res.status === 400) {
           // Don't show "Request Failed" for validation errors
           // Remove the user message div that was added
-          const userMessageDivs = responseArea.querySelectorAll('.chat-user');
+          const userMessageDivs = responseArea.querySelectorAll('.message.user');
           if (userMessageDivs.length > 0) {
             userMessageDivs[userMessageDivs.length - 1].remove();
           }
@@ -467,6 +574,9 @@ document.addEventListener("DOMContentLoaded", () => {
       let meaning = meaningMatch ? meaningMatch[1].trim() : '';
       let example = exampleMatch ? exampleMatch[1].trim() : '';
       
+      // Use the slang word that was sent to backend
+      const detectedWord = slangToExplain;
+      
       // If no example found, try to extract from meaning or generate a simple one
       if (!example || example.toLowerCase().includes('no example') || example.length < 5) {
         // Try to find example in the full text if not in Example: section
@@ -480,70 +590,43 @@ document.addEventListener("DOMContentLoaded", () => {
           example = 'Example usage in context';
         }
       }
-      
-      // Extract the word from user message - try to find the most likely slang word
-      // (usually shorter, non-common words, or the first word if message is short)
-      const messageWords = message.trim().split(/\s+/);
-      let detectedWord = messageWords[0] || 'word';
-      
-      // If message is short (1-3 words), use first word; otherwise find shortest meaningful word
-      if (messageWords.length > 3) {
-        const shortWords = messageWords.filter(w => w.length >= 2 && w.length <= 8 && !['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those'].includes(w.toLowerCase()));
-        if (shortWords.length > 0) {
-          detectedWord = shortWords[0];
-        }
-      }
 
-      // Render row-based dictionary UI
+      // Render AI message in conversation timeline
       try {
-        // Ensure results container exists
-        let resultsContainer = responseArea.querySelector('.results');
-        if (!resultsContainer) {
-          resultsContainer = document.createElement('div');
-          resultsContainer.className = 'results';
-          responseArea.appendChild(resultsContainer);
-        }
+        // Create AI message container
+        const aiMessage = document.createElement('div');
+        aiMessage.className = 'message ai';
 
-        // Create entry row
-        const entry = document.createElement('div');
-        entry.className = 'entry';
-
-        // Left section: word and meaning (65% width)
-        const entryLeft = document.createElement('div');
-        entryLeft.className = 'entry-left';
+        // Create AI entry structure
+        const aiEntry = document.createElement('div');
+        aiEntry.className = 'ai-entry';
 
         // Word
         const wordDiv = document.createElement('div');
         wordDiv.className = 'word';
         wordDiv.textContent = detectedWord;
-        entryLeft.appendChild(wordDiv);
+        aiEntry.appendChild(wordDiv);
 
         // Meaning
         if (meaning) {
           const meaningDiv = document.createElement('div');
           meaningDiv.className = 'meaning';
           meaningDiv.textContent = meaning;
-          entryLeft.appendChild(meaningDiv);
+          aiEntry.appendChild(meaningDiv);
         }
 
-        entry.appendChild(entryLeft);
+        // Example
+        const exampleDiv = document.createElement('div');
+        exampleDiv.className = 'example';
+        exampleDiv.textContent = example;
+        aiEntry.appendChild(exampleDiv);
 
-        // Right section: example pill (35% width)
-        const entryRight = document.createElement('div');
-        entryRight.className = 'entry-right';
-
-        const examplePill = document.createElement('div');
-        examplePill.className = 'example-pill';
-        examplePill.textContent = example;
-        entryRight.appendChild(examplePill);
-
-        entry.appendChild(entryRight);
-
-        resultsContainer.appendChild(entry);
+        aiMessage.appendChild(aiEntry);
+        responseArea.appendChild(aiMessage);
         
-        // Auto-scroll to the entry smoothly
+        // Auto-scroll to the AI message smoothly
         setTimeout(() => {
-          entry.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          aiMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 300);
       } catch (renderError) {
         console.error('Error rendering reply:', renderError);
