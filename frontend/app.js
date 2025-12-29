@@ -155,31 +155,93 @@ const SLANG_LIST = new Set([
 ]);
 
 /**
- * Tokenize and normalize input text
+ * ARCHITECTURAL PRINCIPLE: CENTRALIZED INPUT NORMALIZATION
+ * =======================================================
+ * This function normalizes user input for semantic processing (slang detection, etc.)
+ * 
+ * CRITICAL RULES:
+ * 1. This is ONLY for semantic processing, NOT for UI display
+ * 2. Original input must be preserved separately for UI
+ * 3. Normalization removes trailing punctuation only (not internal)
+ * 4. Preserves: emojis, Hinglish, internal punctuation, expressive characters
+ * 
+ * WHY THIS EXISTS:
+ * - Prevents "fr???" from breaking slang detection
+ * - Ensures "fr", "fr?", "fr???" all resolve to "fr" for processing
+ * - Allows semantic logic to work on clean text while UI shows original
+ * 
+ * EXAMPLES:
+ * Input: "fr???" → Normalized: "fr"
+ * Input: "wassup bro!!!" → Normalized: "wassup bro"
+ * Input: "kya???" → Normalized: "kya"
+ * Input: "😂😂😂" → Normalized: "😂😂😂" (preserved)
+ */
+function normalizeInput(text) {
+  if (typeof text !== 'string') {
+    return '';
+  }
+  
+  // Step 1: Lowercase (for consistent matching)
+  let normalized = text.toLowerCase();
+  
+  // Step 2: Normalize whitespace (multiple spaces → single space)
+  normalized = normalized.replace(/\s+/g, ' ');
+  
+  // Step 3: Remove trailing punctuation only (preserve internal punctuation)
+  // This handles: fr???, fr?!?, wassup bro!!!, etc.
+  normalized = normalized.replace(/[?!.,;:]+$/g, '');
+  
+  // Step 4: Trim leading/trailing spaces
+  normalized = normalized.trim();
+  
+  return normalized;
+}
+
+/**
+ * Tokenize normalized input text for word-by-word processing
+ * This is used AFTER normalization, so input is already clean
  */
 function tokenizeInput(text) {
   if (typeof text !== 'string') {
     return [];
   }
-  // Split by whitespace and punctuation, but keep words
+  // Split by whitespace (punctuation already removed by normalizeInput)
   return text
-    .toLowerCase()
-    .replace(/[.,!?;:()\[\]{}'"]/g, ' ')
     .split(/\s+/)
     .filter(token => token.length > 0);
 }
 
 /**
- * Detect slang words from input using explicit list matching
+ * ARCHITECTURAL PRINCIPLE: SEMANTIC PROCESSING ON NORMALIZED INPUT
+ * ================================================================
+ * This function detects slang words from user input.
+ * 
+ * CRITICAL RULE: This function MUST receive normalized input.
+ * Raw user input (with punctuation, mixed case) should NEVER be passed here.
+ * 
+ * WHY: Prevents "fr???" from breaking detection, ensures consistent matching
+ * 
+ * USAGE:
+ * ❌ WRONG: detectSlangWords(userInput)
+ * ✅ CORRECT: const normalized = normalizeInput(userInput);
+ *            detectSlangWords(normalized);
+ * 
  * Returns array of detected slang terms in order of appearance
  */
-function detectSlangWords(input) {
-  if (typeof input !== 'string' || input.trim().length === 0) {
+function detectSlangWords(normalizedInput) {
+  // Input should already be normalized before calling this function
+  // But we validate and normalize again as a safety measure
+  if (typeof normalizedInput !== 'string' || normalizedInput.trim().length === 0) {
     return [];
   }
 
-  const normalizedInput = input.toLowerCase().trim();
-  const tokens = tokenizeInput(normalizedInput);
+  // Ensure input is normalized (defensive check)
+  const normalized = normalizeInput(normalizedInput);
+  if (normalized.length === 0) {
+    return [];
+  }
+  
+  const tokens = tokenizeInput(normalized);
   const detectedSlang = [];
   const seenSlang = new Set();
 
@@ -190,7 +252,7 @@ function detectSlangWords(input) {
     .sort((a, b) => b.length - a.length);
   
   for (const slang of multiWordSlang) {
-    if (normalizedInput.includes(slang) && !seenSlang.has(slang)) {
+    if (normalized.includes(slang) && !seenSlang.has(slang)) {
       detectedSlang.push(slang);
       seenSlang.add(slang);
       // Mark all words in this multi-word slang as seen to prevent single-word matches
@@ -200,7 +262,7 @@ function detectSlangWords(input) {
 
   // Check single-word slang (only if not part of multi-word slang)
   for (const token of tokens) {
-    const normalizedToken = token.toLowerCase().trim();
+    const normalizedToken = token.trim();
     if (normalizedToken.length > 0 && 
         SLANG_LIST.has(normalizedToken) && 
         !seenSlang.has(normalizedToken)) {
@@ -517,16 +579,28 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * ARCHITECTURAL PRINCIPLE:
-   * ========================
+   * ARCHITECTURAL PRINCIPLE: INPUT PIPELINE & MESSAGE PROCESSING
+   * ============================================================
    * This function is designed to NEVER block future messages, no matter what.
    * 
-   * Key design decisions:
+   * INPUT PIPELINE (MANDATORY FLOW):
+   * 1. Raw User Input → Security Sanitization (HTML/script injection only)
+   * 2. Original Message → Rendered in UI (preserves punctuation, emojis, Hinglish)
+   * 3. Normalized Message → Semantic Processing (slang detection, etc.)
+   * 
+   * KEY DESIGN DECISIONS:
    * 1. User message rendering is COMPLETELY independent of backend
-   * 2. Each message is processed in a fire-and-forget async function
-   * 3. NO global state is modified during backend processing
-   * 4. Button/input state is managed locally, not globally
-   * 5. Errors are UI-only and never affect logic flow
+   * 2. Original input is ALWAYS preserved for UI display
+   * 3. Normalization happens ONLY for semantic processing (not UI)
+   * 4. Each message is processed in a fire-and-forget async function
+   * 5. NO global state is modified during backend processing
+   * 6. Button/input state is managed locally, not globally
+   * 7. Errors are UI-only and never affect logic flow
+   * 
+   * NORMALIZATION GUARANTEE:
+   * - "fr???", "fr?!?", "fr!!!!!" all normalize to "fr" for processing
+   * - Original punctuation/emojis preserved in UI
+   * - Semantic functions NEVER receive raw user input
    * 
    * This ensures that even if the backend fails 100 times in a row,
    * the 101st message will still work perfectly.
@@ -594,6 +668,9 @@ document.addEventListener("DOMContentLoaded", () => {
     /* === RENDER USER MESSAGE FIRST (BEFORE ANY AI LOGIC) === */
     // This ensures user messages ALWAYS appear, even if AI fails
     // User message rendering is COMPLETELY decoupled from backend
+    // CRITICAL: Render ORIGINAL message (exactly as user typed) for UI
+    // Normalization happens later in processMessageAsync for semantic processing only
+    // This preserves: punctuation, emojis, Hinglish, expressive characters
     const userMessageDiv = renderUserMessage(message);
     
     // If rendering failed completely, reset input and return
@@ -665,15 +742,24 @@ document.addEventListener("DOMContentLoaded", () => {
     // We don't await this - it runs independently
     (async () => {
       try {
+        // Preserve original message for UI/memory (exactly as user typed)
         remember("user", message);
 
-        // Detect slang words using explicit list matching
-        // But process ALL messages, even if no slang detected (for Hinglish, etc.)
-        const detectedSlangWords = detectSlangWords(message);
+        /* === ARCHITECTURAL PRINCIPLE: NORMALIZE BEFORE SEMANTIC PROCESSING === */
+        // CRITICAL: All semantic processing (slang detection, etc.) must use normalized input
+        // Original input is preserved for UI display and memory
+        // This ensures "fr???", "fr?!?", "fr!!!!!" all resolve to "fr" for processing
+        const normalizedMessage = normalizeInput(message);
         
-        // Use the first detected slang word, or the full message if none detected
+        // Detect slang words using explicit list matching
+        // MUST use normalized input - never pass raw user input to semantic functions
+        // But process ALL messages, even if no slang detected (for Hinglish, etc.)
+        const detectedSlangWords = detectSlangWords(normalizedMessage);
+        
+        // Use the first detected slang word, or the normalized message if none detected
         // This allows processing of Hinglish and other slang not in our list
-        const slangToExplain = detectedSlangWords.length > 0 ? detectedSlangWords[0] : message;
+        // Note: We use normalized message here for backend, but original is preserved in memory
+        const slangToExplain = detectedSlangWords.length > 0 ? detectedSlangWords[0] : normalizedMessage;
 
         // Create AbortController for proper cleanup
         const abortController = new AbortController();
@@ -685,8 +771,9 @@ document.addEventListener("DOMContentLoaded", () => {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              message: message,
-              slang: slangToExplain
+              // Send original message for context, but normalized slang for processing
+              message: message, // Original preserved for backend context
+              slang: slangToExplain // Normalized for consistent processing
             }),
             signal: abortController.signal
           });
