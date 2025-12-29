@@ -22,14 +22,28 @@ function escapeHtml(text) {
 }
 
 /**
- * Validate and sanitize user input
+ * Sanitize user input for security (XSS prevention only)
+ * DO NOT remove slang, Hinglish, emojis, or language patterns
+ * Only remove security risks: HTML tags and script injection
  */
 function sanitizeInput(input) {
   if (typeof input !== 'string') {
     return '';
   }
-  // Remove control characters except newlines and tabs
-  return input.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '').trim();
+  // Only remove dangerous control characters (null bytes, etc.)
+  // Keep newlines, tabs, emojis, and all text content
+  let sanitized = input.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '');
+  
+  // Remove potential script tags and HTML injection (security only)
+  // But preserve the text content inside
+  sanitized = sanitized.replace(/<script[^>]*>.*?<\/script>/gi, '');
+  sanitized = sanitized.replace(/<iframe[^>]*>.*?<\/iframe>/gi, '');
+  sanitized = sanitized.replace(/javascript:/gi, '');
+  sanitized = sanitized.replace(/on\w+\s*=/gi, '');
+  
+  // DO NOT trim here - preserve original spacing
+  // Only trim if truly empty after security cleanup
+  return sanitized;
 }
 
 /**
@@ -379,6 +393,88 @@ document.addEventListener("DOMContentLoaded", () => {
      SEND MESSAGE
      =============================== */
 
+  /**
+   * Render user message immediately (decoupled from AI processing)
+   * This ensures user messages ALWAYS appear, even if AI fails
+   * 
+   * KEY FIX: User messages render BEFORE any validation or AI calls
+   * This supports: Hinglish, slang, emojis, lowercase, informal language
+   */
+  function renderUserMessage(messageText) {
+    if (!responseArea || !messageText) {
+      return null;
+    }
+    
+    try {
+      const userMessageDiv = document.createElement('div');
+      userMessageDiv.className = 'message user';
+      userMessageDiv.textContent = messageText; // Use textContent for safety
+      responseArea.appendChild(userMessageDiv);
+      
+      // Auto-scroll to user message
+      setTimeout(() => {
+        userMessageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+      
+      return userMessageDiv;
+    } catch (e) {
+      console.error('Error rendering user message:', e);
+      // Even if rendering fails, try to show something
+      try {
+        const fallbackDiv = document.createElement('div');
+        fallbackDiv.className = 'message user';
+        fallbackDiv.textContent = String(messageText).substring(0, 100);
+        responseArea.appendChild(fallbackDiv);
+        return fallbackDiv;
+      } catch (fallbackError) {
+        console.error('Fallback rendering also failed:', fallbackError);
+        return null;
+      }
+    }
+  }
+
+  /**
+   * Render AI fallback message when processing fails
+   * Ensures chat flow continues even on errors
+   */
+  function renderAIFallback(detectedWord) {
+    if (!responseArea) {
+      return;
+    }
+    
+    try {
+      const aiMessage = document.createElement('div');
+      aiMessage.className = 'message ai';
+
+      const aiEntry = document.createElement('div');
+      aiEntry.className = 'ai-entry';
+
+      const wordDiv = document.createElement('div');
+      wordDiv.className = 'word';
+      wordDiv.textContent = detectedWord || 'slang';
+
+      const meaningDiv = document.createElement('div');
+      meaningDiv.className = 'meaning';
+      meaningDiv.textContent = `"${detectedWord || 'this term'}" is a slang expression. I couldn't process it right now, but it's definitely Gen-Z slang!`;
+
+      const exampleDiv = document.createElement('div');
+      exampleDiv.className = 'example';
+      exampleDiv.textContent = `Example: People use "${detectedWord || 'this'}" in casual conversations.`;
+
+      aiEntry.appendChild(wordDiv);
+      aiEntry.appendChild(meaningDiv);
+      aiEntry.appendChild(exampleDiv);
+      aiMessage.appendChild(aiEntry);
+      responseArea.appendChild(aiMessage);
+      
+      setTimeout(() => {
+        aiMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+    } catch (e) {
+      console.error('Error rendering AI fallback:', e);
+    }
+  }
+
   async function sendMessage() {
     // Prevent concurrent requests
     if (isProcessing) {
@@ -391,30 +487,30 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Get input value and trim it
+    // Get input value - preserve original for rendering
     const rawMessage = activeInput.value || '';
     const trimmedMessage = rawMessage.trim();
     
-    // Validate input - do NOT send request if empty or whitespace-only
-    if (!trimmedMessage || trimmedMessage.length === 0) {
+    // ONLY block if truly empty (trim() === "")
+    if (trimmedMessage.length === 0) {
       return;
     }
 
-    // Sanitize input
-    const sanitizedMessage = sanitizeInput(trimmedMessage);
+    // Sanitize ONLY for security (HTML/script injection)
+    // DO NOT remove words, slang, or language patterns
+    const sanitizedMessage = sanitizeInput(rawMessage);
     
-    // Double-check after sanitization
-    if (!sanitizedMessage || sanitizedMessage.length === 0) {
+    // After security sanitization, check if truly empty
+    // But be lenient - only block if completely empty
+    const finalSanitized = sanitizedMessage.trim();
+    if (finalSanitized.length === 0) {
+      // Only return if sanitization removed everything (security issue)
       return;
     }
 
-    if (!validateInputLength(sanitizedMessage, MAX_INPUT_LENGTH)) {
-      const errorMessage = getErrorMessage("INPUT_TOO_LONG");
-      renderError(errorMessage);
-      return;
-    }
-
-    const message = sanitizedMessage;
+    // Check length limit (but still render message even if too long)
+    const message = finalSanitized;
+    const isTooLong = !validateInputLength(message, MAX_INPUT_LENGTH);
 
     // Set processing flag
     isProcessing = true;
@@ -441,15 +537,43 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    /* === SHOW USER MESSAGE (SAFELY) === */
-    try {
-      const userMessageDiv = document.createElement('div');
-      userMessageDiv.className = 'message user';
-      userMessageDiv.textContent = message; // Use textContent for safety
-      responseArea.appendChild(userMessageDiv);
-    } catch (e) {
-      console.error('Error rendering user message:', e);
+    /* === RENDER USER MESSAGE FIRST (BEFORE ANY AI LOGIC) === */
+    // This ensures user messages ALWAYS appear, even if AI fails
+    const userMessageDiv = renderUserMessage(message);
+    
+    // If rendering failed completely, unlock and return
+    if (!userMessageDiv) {
+      isProcessing = false;
+      if (activeButton) {
+        activeButton.disabled = false;
+        activeButton.classList.add("inactive");
+        setTextContent(activeButton, "→");
+      }
+      if (activeInput) {
+        activeInput.disabled = false;
+        activeInput.focus();
+      }
       return;
+    }
+
+    /* === LOCK INPUT === */
+    try {
+      if (activeButton) {
+        activeButton.disabled = true;
+        setTextContent(activeButton, "…");
+      }
+      if (activeInput) {
+        activeInput.disabled = true;
+      }
+    } catch (e) {
+      console.warn('Error locking input:', e);
+    }
+
+    // Show length error if needed, but continue processing
+    if (isTooLong) {
+      const errorMessage = getErrorMessage("INPUT_TOO_LONG");
+      renderError(errorMessage);
+      // Still continue - message is already rendered
     }
 
     /* === LOCK INPUT === */
@@ -468,43 +592,13 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       remember("user", message);
 
-      // Final validation: ensure message is not empty before sending
-      const finalMessage = message.trim();
-      if (!finalMessage || finalMessage.length === 0) {
-        // Unlock input if somehow we got here with empty message
-        if (activeButton) {
-          activeButton.disabled = false;
-          setTextContent(activeButton, "Send");
-        }
-        if (activeInput) {
-          activeInput.disabled = false;
-        }
-        return;
-      }
-
       // Detect slang words using explicit list matching
-      const detectedSlangWords = detectSlangWords(finalMessage);
+      // But process ALL messages, even if no slang detected (for Hinglish, etc.)
+      const detectedSlangWords = detectSlangWords(message);
       
-      // Process ALL user inputs, even if no slang detected
-      // User message is already rendered, so continue processing
-      if (detectedSlangWords.length === 0) {
-        // No slang detected - unlock input and return
-        // User message stays visible
-        isProcessing = false;
-        if (activeButton) {
-          activeButton.disabled = false;
-          activeButton.classList.add("inactive");
-          setTextContent(activeButton, "→");
-        }
-        if (activeInput) {
-          activeInput.disabled = false;
-          activeInput.focus();
-        }
-        return;
-      }
-
-      // Use the first detected slang word (or send all if backend supports it)
-      const slangToExplain = detectedSlangWords[0];
+      // Use the first detected slang word, or the full message if none detected
+      // This allows processing of Hinglish and other slang not in our list
+      const slangToExplain = detectedSlangWords.length > 0 ? detectedSlangWords[0] : message;
 
       // Create AbortController for proper cleanup
       const abortController = new AbortController();
@@ -542,15 +636,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (!res.ok) {
-        // Handle 400 (validation errors) as user input issues, not system failures
+        // Handle 400 (validation errors) gracefully
+        // User message stays visible - show fallback AI response
         if (res.status === 400) {
-          // Don't show "Request Failed" for validation errors
-          // Remove the user message div that was added
-          const userMessageDivs = responseArea.querySelectorAll('.message.user');
-          if (userMessageDivs.length > 0) {
-            userMessageDivs[userMessageDivs.length - 1].remove();
-          }
-          // Unlock the input and return silently
+          // Show fallback instead of removing user message
+          renderAIFallback(slangToExplain);
+          
+          // Unlock the input
           isProcessing = false;
           if (activeButton) {
             activeButton.disabled = false;
@@ -558,6 +650,8 @@ document.addEventListener("DOMContentLoaded", () => {
             setTextContent(activeButton, "→");
           }
           if (activeInput) {
+            activeInput.value = "";
+            activeInput.style.height = "auto";
             activeInput.disabled = false;
             activeInput.focus();
           }
@@ -602,7 +696,8 @@ document.addEventListener("DOMContentLoaded", () => {
       let example = exampleMatch ? exampleMatch[1].trim() : '';
       
       // Use the slang word that was sent to backend
-      const detectedWord = slangToExplain;
+      // If no slang was detected, use a generic term
+      const detectedWord = detectedSlangWords.length > 0 ? slangToExplain : (message.split(/\s+/)[0] || 'term');
       
       /**
        * Validate and clean example sentence
@@ -716,7 +811,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         if (fallbackMeaning) {
           meaning = fallbackMeaning.trim();
-        } else {
+          } else {
           meaning = `"${detectedWord}" is a slang term used in casual conversation.`;
         }
       }
@@ -732,7 +827,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const hasValidExample = example && example.trim().length > 0 && example.trim().toLowerCase() !== detectedWord.toLowerCase();
       
       if (!hasValidMeaning || !hasValidExample) {
-        // Invalid output - unlock input and return
+        // Invalid output - show fallback instead of silently failing
+        // User message is already visible, so show graceful AI response
+        renderAIFallback(detectedWord);
+        
+        // Unlock input
         isProcessing = false;
         if (activeButton) {
           activeButton.disabled = false;
@@ -740,6 +839,8 @@ document.addEventListener("DOMContentLoaded", () => {
           setTextContent(activeButton, "→");
         }
         if (activeInput) {
+          activeInput.value = "";
+          activeInput.style.height = "auto";
           activeInput.disabled = false;
           activeInput.focus();
         }
@@ -789,8 +890,16 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error("RENDER_ERROR");
       }
     } catch (err) {
+      // AI processing failed - but user message is already visible
+      // Show graceful fallback instead of just error
+      const detectedSlangWords = detectSlangWords(message);
+      if (detectedSlangWords.length > 0) {
+        renderAIFallback(detectedSlangWords[0]);
+      } else {
+        // Show error only if we can't provide fallback
       const errorMessage = getErrorMessage(err?.message || 'UNKNOWN_ERROR');
       renderError(errorMessage);
+      }
     } finally {
       /* === RESET INPUT === */
       isProcessing = false;
