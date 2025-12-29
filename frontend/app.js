@@ -226,7 +226,6 @@ window.addEventListener("load", () => {
 document.addEventListener("DOMContentLoaded", () => {
 
   let chatStarted = false;
-  let isProcessing = false; // Prevent concurrent requests
 
   const input = getElementSafely("chatInput");
   const inputSecondary = getElementSafely("chatInputSecondary");
@@ -434,6 +433,48 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
+   * Render system message for connection errors (non-blocking)
+   * Styled differently from user/AI messages - neutral/warning style
+   * Does NOT block further user input
+   */
+  function renderSystemMessage(message, type = 'info') {
+    if (!responseArea) {
+      return;
+    }
+    
+    try {
+      const systemDiv = document.createElement('div');
+      systemDiv.className = `message system system-${type}`;
+      
+      const iconSpan = document.createElement('span');
+      iconSpan.className = 'system-icon';
+      if (type === 'error' || type === 'warning') {
+        iconSpan.textContent = '⚠️';
+      } else {
+        iconSpan.textContent = 'ℹ️';
+      }
+      
+      const textSpan = document.createElement('span');
+      textSpan.className = 'system-text';
+      textSpan.textContent = message;
+      
+      systemDiv.appendChild(iconSpan);
+      systemDiv.appendChild(textSpan);
+      responseArea.appendChild(systemDiv);
+      
+      // Auto-scroll to system message
+      setTimeout(() => {
+        systemDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+      
+      return systemDiv;
+    } catch (e) {
+      console.error('Error rendering system message:', e);
+      return null;
+    }
+  }
+
+  /**
    * Render AI fallback message when processing fails
    * Ensures chat flow continues even on errors
    */
@@ -476,11 +517,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function sendMessage() {
-    // Prevent concurrent requests
-    if (isProcessing) {
-      return;
-    }
-
     // Validate active input
     if (!activeInput || !activeButton || !responseArea) {
       console.error('Required elements not available');
@@ -512,9 +548,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const message = finalSanitized;
     const isTooLong = !validateInputLength(message, MAX_INPUT_LENGTH);
 
-    // Set processing flag
-    isProcessing = true;
-
     /* === UI SWITCH (ONLY ONCE) === */
     if (!chatStarted) {
       chatStarted = true;
@@ -539,147 +572,177 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* === RENDER USER MESSAGE FIRST (BEFORE ANY AI LOGIC) === */
     // This ensures user messages ALWAYS appear, even if AI fails
+    // User message rendering is COMPLETELY decoupled from backend
     const userMessageDiv = renderUserMessage(message);
     
-    // If rendering failed completely, unlock and return
+    // If rendering failed completely, reset input and return
     if (!userMessageDiv) {
-      isProcessing = false;
+      if (activeInput) {
+        activeInput.value = "";
+        activeInput.style.height = "auto";
+        activeInput.focus();
+      }
       if (activeButton) {
-        activeButton.disabled = false;
         activeButton.classList.add("inactive");
         setTextContent(activeButton, "→");
-      }
-      if (activeInput) {
-        activeInput.disabled = false;
-        activeInput.focus();
       }
       return;
     }
 
-    /* === LOCK INPUT === */
+    /* === RESET INPUT IMMEDIATELY (NON-BLOCKING) === */
+    // Input is unlocked immediately so user can send more messages
+    // Backend processing happens in background
     try {
-      if (activeButton) {
-        activeButton.disabled = true;
-        setTextContent(activeButton, "…");
-      }
       if (activeInput) {
-        activeInput.disabled = true;
+        activeInput.value = "";
+        activeInput.style.height = "auto";
+        // DO NOT disable input - allow unlimited messages during backend downtime
+        activeInput.disabled = false;
+        activeInput.focus();
+      }
+      if (activeButton) {
+        // Show loading state but don't disable
+        setTextContent(activeButton, "…");
+        activeButton.classList.remove("inactive");
+        // DO NOT disable button - allow retries
+        activeButton.disabled = false;
       }
     } catch (e) {
-      console.warn('Error locking input:', e);
+      console.warn('Error resetting input:', e);
     }
 
-    // Show length error if needed, but continue processing
+    // Show length warning if needed (non-blocking)
     if (isTooLong) {
-      const errorMessage = getErrorMessage("INPUT_TOO_LONG");
-      renderError(errorMessage);
-      // Still continue - message is already rendered
+      renderSystemMessage(`Message is longer than ${MAX_INPUT_LENGTH} characters. It may be truncated.`, 'warning');
     }
 
-    /* === LOCK INPUT === */
-    try {
-      if (activeButton) {
-        activeButton.disabled = true;
-        setTextContent(activeButton, "…");
-      }
-      if (activeInput) {
-        activeInput.disabled = true;
-      }
-    } catch (e) {
-      console.warn('Error locking input:', e);
-    }
-
-    try {
-      remember("user", message);
-
-      // Detect slang words using explicit list matching
-      // But process ALL messages, even if no slang detected (for Hinglish, etc.)
-      const detectedSlangWords = detectSlangWords(message);
-      
-      // Use the first detected slang word, or the full message if none detected
-      // This allows processing of Hinglish and other slang not in our list
-      const slangToExplain = detectedSlangWords.length > 0 ? detectedSlangWords[0] : message;
-
-      // Create AbortController for proper cleanup
-      const abortController = new AbortController();
-      const timeoutId = setTimeout(() => abortController.abort(), 60000);
-
-      let res;
+    // Backend processing happens asynchronously
+    // User can continue sending messages while this processes
+    (async () => {
       try {
-        res = await fetch("https://nocap-xsa5.onrender.com/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: finalMessage,
-            slang: slangToExplain
-          }),
-          signal: abortController.signal
-        });
-        clearTimeout(timeoutId);
-      } catch (fetchError) {
-        clearTimeout(timeoutId);
-        if (fetchError.name === 'TimeoutError' || fetchError.name === 'AbortError' || fetchError.name === 'AbortSignal') {
-          throw new Error("NETWORK_ERROR");
-        }
-        // Check if backend is sleeping (common on Render free tier)
-        if (fetchError.message && (fetchError.message.includes('Failed to fetch') || fetchError.message.includes('NetworkError'))) {
-          throw new Error("NETWORK_ERROR");
-        }
-        throw new Error("NETWORK_ERROR");
-      }
+        remember("user", message);
 
-      let data;
-      try {
-        data = await res.json();
-      } catch (jsonError) {
-        throw new Error("INVALID_RESPONSE");
-      }
+        // Detect slang words using explicit list matching
+        // But process ALL messages, even if no slang detected (for Hinglish, etc.)
+        const detectedSlangWords = detectSlangWords(message);
+        
+        // Use the first detected slang word, or the full message if none detected
+        // This allows processing of Hinglish and other slang not in our list
+        const slangToExplain = detectedSlangWords.length > 0 ? detectedSlangWords[0] : message;
 
-      if (!res.ok) {
-        // Handle 400 (validation errors) gracefully
-        // User message stays visible - show fallback AI response
-        if (res.status === 400) {
-          // Show fallback instead of removing user message
-          renderAIFallback(slangToExplain);
+        // Create AbortController for proper cleanup
+        const abortController = new AbortController();
+        const timeoutId = setTimeout(() => abortController.abort(), 60000);
+
+        let res;
+        try {
+          res = await fetch("https://nocap-xsa5.onrender.com/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: message,
+              slang: slangToExplain
+            }),
+            signal: abortController.signal
+          });
+          clearTimeout(timeoutId);
+        } catch (fetchError) {
+          clearTimeout(timeoutId);
           
-          // Unlock the input
-          isProcessing = false;
+          // Render system message for connection errors (non-blocking)
+          // User can continue sending messages
+          if (fetchError.name === 'TimeoutError' || fetchError.name === 'AbortError' || fetchError.name === 'AbortSignal') {
+            renderSystemMessage("Connection timeout. Backend may be starting up (Render free tier takes 30-60 seconds). Your message was saved.", 'warning');
+            // Reset button state
+            if (activeButton) {
+              activeButton.classList.add("inactive");
+              setTextContent(activeButton, "→");
+            }
+            return;
+          }
+          
+          // Check if backend is sleeping (common on Render free tier)
+          if (fetchError.message && (fetchError.message.includes('Failed to fetch') || fetchError.message.includes('NetworkError'))) {
+            renderSystemMessage("Backend is offline or starting up. Your message was saved. Try again in a few seconds.", 'warning');
+            // Reset button state
+            if (activeButton) {
+              activeButton.classList.add("inactive");
+              setTextContent(activeButton, "→");
+            }
+            return;
+          }
+          
+          // Generic network error
+          renderSystemMessage("Network error. Your message was saved. Please try again.", 'error');
+          // Reset button state
           if (activeButton) {
-            activeButton.disabled = false;
             activeButton.classList.add("inactive");
             setTextContent(activeButton, "→");
           }
-          if (activeInput) {
-            activeInput.value = "";
-            activeInput.style.height = "auto";
-            activeInput.disabled = false;
-            activeInput.focus();
+          return;
+        }
+
+        let data;
+        try {
+          data = await res.json();
+        } catch (jsonError) {
+          renderSystemMessage("Invalid response from server. Your message was saved.", 'error');
+          if (activeButton) {
+            activeButton.classList.add("inactive");
+            setTextContent(activeButton, "→");
           }
           return;
         }
-        if (data && data.error) {
-          throw new Error(data.error);
+
+        if (!res.ok) {
+          // Handle errors gracefully - show system message, don't block
+          if (res.status === 400) {
+            // Validation error - show fallback AI response
+            renderAIFallback(slangToExplain);
+            if (activeButton) {
+              activeButton.classList.add("inactive");
+              setTextContent(activeButton, "→");
+            }
+            return;
+          }
+          
+          // Server errors - show system message
+          if (res.status === 0 || res.status >= 500) {
+            renderSystemMessage("Server error. Backend may be starting up. Your message was saved.", 'warning');
+          } else if (res.status === 404) {
+            renderSystemMessage("Service endpoint not found. Your message was saved.", 'error');
+          } else {
+            renderSystemMessage("Request failed. Your message was saved. Please try again.", 'error');
+          }
+          
+          if (activeButton) {
+            activeButton.classList.add("inactive");
+            setTextContent(activeButton, "→");
+          }
+          return;
         }
-        if (res.status === 0 || res.status >= 500) {
-          throw new Error("SERVER_ERROR");
-        } else if (res.status === 404) {
-          throw new Error("ENDPOINT_NOT_FOUND");
-        } else {
-          throw new Error("REQUEST_ERROR");
+
+        if (!data || !data.reply) {
+          renderSystemMessage("Empty response from server. Your message was saved.", 'warning');
+          if (activeButton) {
+            activeButton.classList.add("inactive");
+            setTextContent(activeButton, "→");
+          }
+          return;
         }
-      }
 
-      if (!data || !data.reply) {
-        throw new Error("EMPTY_RESPONSE");
-      }
+        // data.reply is plain text, parse it to extract Meaning and Example
+        const replyText = typeof data.reply === 'string' ? data.reply : String(data.reply || '');
 
-      // data.reply is plain text, parse it to extract Meaning and Example
-      const replyText = typeof data.reply === 'string' ? data.reply : String(data.reply || '');
-
-      // Validate response length
-      if (replyText.length > 100000) { // Prevent memory issues
-        throw new Error("INVALID_FORMAT");
-      }
+        // Validate response length
+        if (replyText.length > 100000) { // Prevent memory issues
+          renderSystemMessage("Response too large. Your message was saved.", 'warning');
+          if (activeButton) {
+            activeButton.classList.add("inactive");
+            setTextContent(activeButton, "→");
+          }
+          return;
+        }
 
       // Parse the response to extract meaning and example
       // Try multiple patterns to catch different formats
@@ -779,7 +842,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       
       // Clean and validate example
-      example = validateAndCleanExample(example, detectedWord, finalMessage);
+      example = validateAndCleanExample(example, detectedWord, message);
       
       // If example is invalid, try to generate default
       if (!example) {
@@ -831,18 +894,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // User message is already visible, so show graceful AI response
         renderAIFallback(detectedWord);
         
-        // Unlock input
-        isProcessing = false;
+        // Reset button state
         if (activeButton) {
-          activeButton.disabled = false;
           activeButton.classList.add("inactive");
           setTextContent(activeButton, "→");
-        }
-        if (activeInput) {
-          activeInput.value = "";
-          activeInput.style.height = "auto";
-          activeInput.disabled = false;
-          activeInput.focus();
         }
         return;
       }
@@ -885,40 +940,30 @@ document.addEventListener("DOMContentLoaded", () => {
             aiMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         }, 300);
-      } catch (renderError) {
-        console.error('Error rendering reply:', renderError);
-        throw new Error("RENDER_ERROR");
-      }
-    } catch (err) {
-      // AI processing failed - but user message is already visible
-      // Show graceful fallback instead of just error
-      const detectedSlangWords = detectSlangWords(message);
-      if (detectedSlangWords.length > 0) {
-        renderAIFallback(detectedSlangWords[0]);
-      } else {
-        // Show error only if we can't provide fallback
-      const errorMessage = getErrorMessage(err?.message || 'UNKNOWN_ERROR');
-      renderError(errorMessage);
-      }
-    } finally {
-      /* === RESET INPUT === */
-      isProcessing = false;
-      try {
-        if (activeInput) {
-          activeInput.value = "";
-          activeInput.style.height = "auto";
-          activeInput.disabled = false;
-          activeInput.focus();
-        }
+        
+        // Reset button state on success
         if (activeButton) {
-          activeButton.disabled = false;
           activeButton.classList.add("inactive");
           setTextContent(activeButton, "→");
         }
-      } catch (resetError) {
-        console.warn('Error resetting input:', resetError);
+      } catch (renderError) {
+        console.error('Error rendering reply:', renderError);
+        renderSystemMessage("Error rendering response. Your message was saved.", 'error');
+        if (activeButton) {
+          activeButton.classList.add("inactive");
+          setTextContent(activeButton, "→");
+        }
+      }
+    } catch (err) {
+      // Unexpected error - show system message
+      console.error('Unexpected error in sendMessage:', err);
+      renderSystemMessage("Unexpected error. Your message was saved.", 'error');
+      if (activeButton) {
+        activeButton.classList.add("inactive");
+        setTextContent(activeButton, "→");
       }
     }
+    })(); // End async IIFE - backend processing happens in background
   }
 
   /**
