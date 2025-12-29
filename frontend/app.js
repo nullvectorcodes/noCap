@@ -516,7 +516,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function sendMessage() {
+  /**
+   * ARCHITECTURAL PRINCIPLE:
+   * ========================
+   * This function is designed to NEVER block future messages, no matter what.
+   * 
+   * Key design decisions:
+   * 1. User message rendering is COMPLETELY independent of backend
+   * 2. Each message is processed in a fire-and-forget async function
+   * 3. NO global state is modified during backend processing
+   * 4. Button/input state is managed locally, not globally
+   * 5. Errors are UI-only and never affect logic flow
+   * 
+   * This ensures that even if the backend fails 100 times in a row,
+   * the 101st message will still work perfectly.
+   */
+  function sendMessage() {
     // Validate active input
     if (!activeInput || !activeButton || !responseArea) {
       console.error('Required elements not available');
@@ -570,6 +585,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    /* === CAPTURE LOCAL REFERENCES (CRITICAL FOR INDEPENDENCE) === */
+    // Capture button/input references at THIS moment
+    // This ensures each message has its own snapshot, preventing interference
+    const currentButton = activeButton;
+    const currentInput = activeInput;
+
     /* === RENDER USER MESSAGE FIRST (BEFORE ANY AI LOGIC) === */
     // This ensures user messages ALWAYS appear, even if AI fails
     // User message rendering is COMPLETELY decoupled from backend
@@ -577,14 +598,14 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // If rendering failed completely, reset input and return
     if (!userMessageDiv) {
-      if (activeInput) {
-        activeInput.value = "";
-        activeInput.style.height = "auto";
-        activeInput.focus();
+      if (currentInput) {
+        currentInput.value = "";
+        currentInput.style.height = "auto";
+        currentInput.focus();
       }
-      if (activeButton) {
-        activeButton.classList.add("inactive");
-        setTextContent(activeButton, "→");
+      if (currentButton) {
+        currentButton.classList.add("inactive");
+        setTextContent(currentButton, "→");
       }
       return;
     }
@@ -592,20 +613,21 @@ document.addEventListener("DOMContentLoaded", () => {
     /* === RESET INPUT IMMEDIATELY (NON-BLOCKING) === */
     // Input is unlocked immediately so user can send more messages
     // Backend processing happens in background
+    // This happens SYNCHRONOUSLY to ensure input is always ready
     try {
-      if (activeInput) {
-        activeInput.value = "";
-        activeInput.style.height = "auto";
-        // DO NOT disable input - allow unlimited messages during backend downtime
-        activeInput.disabled = false;
-        activeInput.focus();
+      if (currentInput) {
+        currentInput.value = "";
+        currentInput.style.height = "auto";
+        // NEVER disable input - allow unlimited messages during backend downtime
+        currentInput.disabled = false;
+        currentInput.focus();
       }
-      if (activeButton) {
-        // Show loading state but don't disable
-        setTextContent(activeButton, "…");
-        activeButton.classList.remove("inactive");
-        // DO NOT disable button - allow retries
-        activeButton.disabled = false;
+      // Reset button to ready state immediately
+      // This ensures button is always usable, regardless of backend status
+      if (currentButton) {
+        currentButton.classList.add("inactive");
+        setTextContent(currentButton, "→");
+        currentButton.disabled = false;
       }
     } catch (e) {
       console.warn('Error resetting input:', e);
@@ -616,8 +638,31 @@ document.addEventListener("DOMContentLoaded", () => {
       renderSystemMessage(`Message is longer than ${MAX_INPUT_LENGTH} characters. It may be truncated.`, 'warning');
     }
 
-    // Backend processing happens asynchronously
-    // User can continue sending messages while this processes
+    /* === PROCESS MESSAGE ASYNCHRONOUSLY (FIRE-AND-FORGET) === */
+    // This function is completely independent - no shared state
+    // Each message gets its own isolated processing context
+    // Failures here NEVER affect future messages
+    // Button/input state is already reset above - this only handles backend communication
+    processMessageAsync(message);
+  }
+
+  /**
+   * ARCHITECTURAL PRINCIPLE:
+   * ========================
+   * This function processes a single message independently.
+   * 
+   * Key guarantees:
+   * 1. NO global state is modified (no button/input state changes)
+   * 2. Errors are caught and rendered as UI-only system messages
+   * 3. NO shared mutable state between messages
+   * 4. One failure cannot affect other messages
+   * 
+   * This is fire-and-forget: we don't wait for it, and we don't care if it fails.
+   * Button/input state is managed in sendMessage() synchronously, not here.
+   */
+  function processMessageAsync(message) {
+    // Fire-and-forget async processing
+    // We don't await this - it runs independently
     (async () => {
       try {
         remember("user", message);
@@ -651,34 +696,20 @@ document.addEventListener("DOMContentLoaded", () => {
           
           // Render system message for connection errors (non-blocking)
           // User can continue sending messages
+          // NO global state is modified - this is UI-only
           if (fetchError.name === 'TimeoutError' || fetchError.name === 'AbortError' || fetchError.name === 'AbortSignal') {
             renderSystemMessage("Connection timeout. Backend may be starting up (Render free tier takes 30-60 seconds). Your message was saved.", 'warning');
-            // Reset button state
-            if (activeButton) {
-              activeButton.classList.add("inactive");
-              setTextContent(activeButton, "→");
-            }
             return;
           }
           
           // Check if backend is sleeping (common on Render free tier)
           if (fetchError.message && (fetchError.message.includes('Failed to fetch') || fetchError.message.includes('NetworkError'))) {
             renderSystemMessage("Backend is offline or starting up. Your message was saved. Try again in a few seconds.", 'warning');
-            // Reset button state
-            if (activeButton) {
-              activeButton.classList.add("inactive");
-              setTextContent(activeButton, "→");
-            }
             return;
           }
           
           // Generic network error
           renderSystemMessage("Network error. Your message was saved. Please try again.", 'error');
-          // Reset button state
-          if (activeButton) {
-            activeButton.classList.add("inactive");
-            setTextContent(activeButton, "→");
-          }
           return;
         }
 
@@ -686,27 +717,21 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
           data = await res.json();
         } catch (jsonError) {
+          // UI-only error - no state changes
           renderSystemMessage("Invalid response from server. Your message was saved.", 'error');
-          if (activeButton) {
-            activeButton.classList.add("inactive");
-            setTextContent(activeButton, "→");
-          }
           return;
         }
 
         if (!res.ok) {
           // Handle errors gracefully - show system message, don't block
+          // NO global state is modified
           if (res.status === 400) {
             // Validation error - show fallback AI response
             renderAIFallback(slangToExplain);
-            if (activeButton) {
-              activeButton.classList.add("inactive");
-              setTextContent(activeButton, "→");
-            }
             return;
           }
           
-          // Server errors - show system message
+          // Server errors - show system message (UI-only)
           if (res.status === 0 || res.status >= 500) {
             renderSystemMessage("Server error. Backend may be starting up. Your message was saved.", 'warning');
           } else if (res.status === 404) {
@@ -714,20 +739,12 @@ document.addEventListener("DOMContentLoaded", () => {
           } else {
             renderSystemMessage("Request failed. Your message was saved. Please try again.", 'error');
           }
-          
-          if (activeButton) {
-            activeButton.classList.add("inactive");
-            setTextContent(activeButton, "→");
-          }
           return;
         }
 
         if (!data || !data.reply) {
+          // UI-only error - no state changes
           renderSystemMessage("Empty response from server. Your message was saved.", 'warning');
-          if (activeButton) {
-            activeButton.classList.add("inactive");
-            setTextContent(activeButton, "→");
-          }
           return;
         }
 
@@ -736,11 +753,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Validate response length
         if (replyText.length > 100000) { // Prevent memory issues
+          // UI-only error - no state changes
           renderSystemMessage("Response too large. Your message was saved.", 'warning');
-          if (activeButton) {
-            activeButton.classList.add("inactive");
-            setTextContent(activeButton, "→");
-          }
           return;
         }
 
@@ -892,13 +906,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!hasValidMeaning || !hasValidExample) {
         // Invalid output - show fallback instead of silently failing
         // User message is already visible, so show graceful AI response
+        // NO state changes - this is UI-only
         renderAIFallback(detectedWord);
-        
-        // Reset button state
-        if (activeButton) {
-          activeButton.classList.add("inactive");
-          setTextContent(activeButton, "→");
-        }
         return;
       }
 
@@ -934,36 +943,26 @@ document.addEventListener("DOMContentLoaded", () => {
         responseArea.appendChild(aiMessage);
         
         // Auto-scroll to the AI message smoothly (debounced)
-        clearTimeout(sendMessage.scrollTimeout);
-        sendMessage.scrollTimeout = setTimeout(() => {
+        clearTimeout(processMessageAsync.scrollTimeout);
+        processMessageAsync.scrollTimeout = setTimeout(() => {
           if (aiMessage && aiMessage.parentNode) {
             aiMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         }, 300);
         
-        // Reset button state on success
-        if (activeButton) {
-          activeButton.classList.add("inactive");
-          setTextContent(activeButton, "→");
-        }
+        // Success - no state changes needed (button already reset in sendMessage)
       } catch (renderError) {
         console.error('Error rendering reply:', renderError);
+        // UI-only error - no state changes
         renderSystemMessage("Error rendering response. Your message was saved.", 'error');
-        if (activeButton) {
-          activeButton.classList.add("inactive");
-          setTextContent(activeButton, "→");
-        }
       }
     } catch (err) {
-      // Unexpected error - show system message
-      console.error('Unexpected error in sendMessage:', err);
+      // Unexpected error - show system message (UI-only)
+      // NO global state is modified - this error cannot affect future messages
+      console.error('Unexpected error in processMessageAsync:', err);
       renderSystemMessage("Unexpected error. Your message was saved.", 'error');
-      if (activeButton) {
-        activeButton.classList.add("inactive");
-        setTextContent(activeButton, "→");
-      }
     }
-    })(); // End async IIFE - backend processing happens in background
+    })(); // End async IIFE - fire-and-forget, no await
   }
 
   /**
