@@ -1,22 +1,105 @@
-[00:00:00.561] Server  LOG     ✓ Ready in 407ms
-[00:01:43.504] Server  LOG     ✓ Compiled in 206ms
-[00:01:45.846] Server  LOG     ✓ Compiled in 91ms
-[00:03:15.958] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:03:15.979] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:03:19.249] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:03:19.261] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:03:24.190] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:03:24.203] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:06:58.127] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:06:58.145] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:07:06.546] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:07:06.561] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:07:44.399] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:07:44.410] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:09:51.511] Server  LOG     ✓ Compiled in 44ms
-[00:10:08.940] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:10:08.954] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:10:17.374] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:10:17.387] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:10:41.269] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:10:41.287] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:00:00.580] Server  LOG     ✓ Ready in 414ms
+[00:02:38.214] Server  LOG     ✓ Compiled in 226ms
+[00:02:56.669] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:03:59.079] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:03:59.158] Server  ERROR   [Server Internal Error] TypeError: fetch failed
+[00:04:54.420] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:04:54.482] Server  ERROR   [Server Internal Error] TypeError: fetch failed
+[00:05:08.636] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:05:08.691] Server  ERROR   [Server Internal Error] TypeError: fetch failed
+[00:06:46.409] Server  LOG     ✓ Compiled in 19ms
+[00:06:51.319] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:51.430] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" className="dark">
+                          <body
++                           className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+                          >
+                  ...
+
+[00:07:16.233] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:07:16.289] Server  ERROR   [Server Internal Error] TypeError: fetch failed
+[00:07:26.598] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:07:26.640] Server  ERROR   [Server Internal Error] TypeError: fetch failed
+[00:07:34.922] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:07:34.966] Server  ERROR   [Server Internal Error] TypeError: fetch failed
+[00:07:45.217] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:07:45.257] Server  ERROR   [Server Internal Error] TypeError: fetch failed
+[00:07:45.390] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:07:45.425] Server  ERROR   [Server Internal Error] TypeError: fetch failed
+[00:09:27.568] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:09:27.616] Server  ERROR   [Server Internal Error] TypeError: fetch failed
+[00:09:38.390] Server  LOG     ✓ Compiled in 18ms
+[00:09:43.517] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:09:47.723] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:09:47.762] Server  ERROR   [Server Internal Error] TypeError: fetch failed
+[00:09:48.447] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:09:48.486] Server  ERROR   [Server Internal Error] TypeError: fetch failed
+[00:09:55.060] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:09:55.117] Server  ERROR   [Server Internal Error] TypeError: fetch failed
+[00:11:39.677] Server  LOG     ✓ Compiled in 9ms
+[00:11:44.249] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:11:44.359] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" className="dark">
+                          <body
++                           className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+                          >
+                  ...
+
+[00:13:47.144] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:13:47.207] Server  ERROR   [Server Internal Error] TypeError: fetch failed
