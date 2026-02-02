@@ -1,79 +1,115 @@
-[00:00:00.446] Server  LOG     ✓ Ready in 303ms
-[00:02:04.928] Server  LOG     ✓ Compiled in 439ms
-[00:05:10.978] Server  LOG     ✓ Compiled in 189ms
-[00:05:29.439] Server  LOG     ✓ Compiled in 14ms
-[00:05:29.771] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:05:29.834] Browser ERROR   uncaughtError: ReferenceError: Can't find variable: messages
-[00:05:52.134] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:06:11.550] Server  ERROR   Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
-[00:06:11.550] Server  ERROR   ⨯ "uncaughtException:" Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
-[00:06:11.551] Server  ERROR   ⨯ "uncaughtException: " Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
-[00:08:56.367] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:08:56.501] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:10:22.926] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:10:31.702] Server  ERROR   Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
-[00:10:31.702] Server  ERROR   ⨯ "uncaughtException:" Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
-[00:10:31.702] Server  ERROR   ⨯ "uncaughtException: " Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
-[00:15:36.737] Server  LOG     ✓ Compiled in 26ms
-[00:15:36.753] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:15:36.792] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:19:08.344] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:19:08.386] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:19:15.638] Server  ERROR   Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
-[00:19:15.639] Server  ERROR   ⨯ "uncaughtException:" Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
-[00:19:15.639] Server  ERROR   ⨯ "uncaughtException: " Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
-[00:26:04.457] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:26:04.507] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:33:31.803] Server  LOG     [OCR] Initializing worker...
-[00:33:34.581] Server  LOG     [OCR] Progress: 0%
-[00:33:34.587] Server  LOG     [OCR] Progress: 10%
-[00:33:34.606] Server  LOG     [OCR] Progress: 20%
-[00:33:34.608] Server  LOG     [OCR] Progress: 30%
-[00:33:34.633] Server  LOG     [OCR] Progress: 40%
-[00:33:34.636] Server  LOG     [OCR] Progress: 50%
-[00:33:34.637] Server  LOG     [OCR] Progress: 60%
-[00:33:34.647] Server  LOG     [OCR] Progress: 100%
-[00:33:34.649] Server  LOG     [Early Exit] No slang detected in text.
-[00:39:26.464] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:39:26.518] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:39:45.357] Server  LOG     [OCR] Initializing worker...
-[00:39:46.440] Server  LOG     [OCR] Progress: 0%
-[00:39:46.447] Server  LOG     [OCR] Progress: 10%
-[00:39:46.466] Server  LOG     [OCR] Progress: 20%
-[00:39:46.469] Server  LOG     [OCR] Progress: 30%
-[00:39:46.495] Server  LOG     [OCR] Progress: 40%
-[00:39:46.499] Server  LOG     [OCR] Progress: 50%
-[00:39:46.500] Server  LOG     [OCR] Progress: 60%
-[00:39:46.511] Server  LOG     [OCR] Progress: 100%
-[00:39:46.513] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:39:46.530] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:43:08.417] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:43:08.440] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:43:18.893] Server  LOG     [OCR] Initializing worker...
-[00:43:20.283] Server  LOG     [OCR] Progress: 0%
-[00:43:20.289] Server  LOG     [OCR] Progress: 10%
-[00:43:20.309] Server  LOG     [OCR] Progress: 20%
-[00:43:20.311] Server  LOG     [OCR] Progress: 30%
-[00:43:20.336] Server  LOG     [OCR] Progress: 40%
-[00:43:20.340] Server  LOG     [OCR] Progress: 50%
-[00:43:20.341] Server  LOG     [OCR] Progress: 60%
-[00:43:20.351] Server  LOG     [OCR] Progress: 100%
-[00:43:20.353] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:43:20.366] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:44:35.402] Server  LOG     ✓ Compiled in 51ms
-[00:44:56.034] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:44:56.055] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:44:56.176] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:46:42.363] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:46:42.406] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:46:55.974] Server  LOG     [OCR] Initializing worker...
-[00:46:56.713] Server  LOG     [OCR] Progress: 0%
-[00:46:56.720] Server  LOG     [OCR] Progress: 10%
-[00:46:56.739] Server  LOG     [OCR] Progress: 20%
-[00:46:56.741] Server  LOG     [OCR] Progress: 30%
-[00:46:56.767] Server  LOG     [OCR] Progress: 40%
-[00:46:56.770] Server  LOG     [OCR] Progress: 50%
-[00:46:56.771] Server  LOG     [OCR] Progress: 60%
-[00:46:56.781] Server  LOG     [OCR] Progress: 100%
-[00:46:56.784] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
-[00:46:56.797] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:00:00.437] Server  LOG     ✓ Ready in 297ms
+[00:00:04.569] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:00:04.603] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:00:10.170] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:00:10.185] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:00:18.720] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:00:18.740] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:00:43.300] Server  LOG     ✓ Compiled in 82ms
+[00:00:43.381] Server  ERROR   ⨯ ./src/app/page.tsx:488:18
+Parsing ecmascript source code failed
+  486 |
+  487 |
+> 488 |                 )}
+      |                  ^
+  489 |             </button>
+  490 |           </div>
+  491 |         </div>
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+[00:00:43.633] Browser ERROR   ./src/app/page.tsx:488:18
+Parsing ecmascript source code failed
+  486 |
+  487 |
+> 488 |                 )}
+      |                  ^
+  489 |             </button>
+  490 |           </div>
+  491 |         </div>
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[00:00:43.700] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:00:43.718] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:00:43.878] Server  LOG     ✓ Compiled in 459ms
+[00:00:46.079] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:00:46.090] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:00:48.001] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:00:48.006] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:01:53.907] Browser LOG     Failed to parse AI JSON, falling back to raw text {}
+[00:01:57.153] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:01:57.167] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:01:58.723] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:01:58.728] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:02:20.065] Browser LOG     Failed to parse AI JSON, falling back to raw text {}
+[00:04:20.645] Server  LOG     ✓ Compiled in 20ms
+[00:04:36.273] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:04:36.293] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:04:37.779] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:04:37.784] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:04:55.625] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:04:55.639] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:06:40.886] Server  LOG     ✓ Compiled in 93ms
+[00:07:02.445] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:07:02.481] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:07:23.897] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:07:23.921] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:07:31.307] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:07:31.323] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:07:51.065] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:07:51.076] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:07:56.034] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:07:56.051] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:09:48.928] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:09:48.953] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:09:55.343] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:09:55.354] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:10:59.258] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
+[00:10:59.287] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:11:05.195] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: French
+[00:11:05.208] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:11:20.891] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: French
+[00:11:20.907] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:11:25.121] Browser LOG     Failed to parse AI JSON, falling back to raw text {}
+[00:14:03.844] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
+[00:14:03.876] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:14:08.302] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: French
+[00:14:08.307] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:14:40.823] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: German
+[00:14:40.842] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:14:48.210] Browser LOG     Failed to parse AI JSON, falling back to raw text {}
+[00:14:52.306] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
+[00:14:52.329] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:14:59.989] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: French
+[00:15:00.001] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:16:00.114] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
+[00:16:00.123] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:17:55.126] Server  LOG     ✓ Compiled in 30ms
+[00:17:55.324] Browser ERROR   uncaughtError: ReferenceError: Can't find variable: Typewriter
+[00:18:05.709] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:18:05.724] Server  LOG     ✓ Compiled in 61ms
+[00:18:05.762] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
+[00:18:05.871] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:18:06.741] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
+[00:18:06.756] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:18:19.180] Server  LOG     ✓ Compiled in 19ms
+[00:26:14.544] Server  LOG     ✓ Compiled in 20ms

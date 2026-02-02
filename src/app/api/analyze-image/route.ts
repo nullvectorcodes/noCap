@@ -131,8 +131,11 @@ export async function POST(req: Request) {
             ? cleanedText.substring(0, 300) + "..."
             : cleanedText;
 
+        // Check for language in FormData
+        const language = formData.get('language') as string || "English";
+
         // Analyze with AI
-        const reply = await analyzeText(limitedText);
+        const reply = await analyzeText(limitedText, language);
 
         return NextResponse.json({
             extractedText: cleanedText, // Return full text for UI

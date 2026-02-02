@@ -5,12 +5,13 @@ export async function POST(req: Request) {
     try {
         const body = await req.json();
         const userMessage = body.message?.trim();
+        const language = body.language || "English";
 
         if (!userMessage) {
             return NextResponse.json({ error: "Message cannot be empty" }, { status: 400 });
         }
 
-        const reply = await analyzeText(userMessage);
+        const reply = await analyzeText(userMessage, language);
 
         return NextResponse.json({ reply });
 

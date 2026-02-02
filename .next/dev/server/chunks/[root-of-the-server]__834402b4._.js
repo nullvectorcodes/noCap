@@ -78,7 +78,7 @@ async function detectModelCapabilities(baseUrl) {
         return null;
     }
 }
-async function analyzeText(text) {
+async function analyzeText(text, targetLanguage = "English") {
     // 1. Detect Capabilities
     let modelId = process.env.LM_STUDIO_MODEL;
     let endpoint = "chat/completions";
@@ -93,23 +93,28 @@ async function analyzeText(text) {
     }
     // 2. Prepare Payload (Sanitized)
     const systemPrompt = `You are noCap, a gen-z slang expert.
+You must analyze the user's message and output the result in ${targetLanguage}.
+
 Your task:
 1. Analyze the user's message.
-2. "sentence_meaning": Provide a VIBE-BASED translation. Capture the emotion and intent (e.g. "I'm shocked!" instead of literal words).
+2. "sentence_meaning": Provide a VIBE-BASED translation in ${targetLanguage}. Capture the emotion and intent.
 3. "terms": Identify specific slang phrases. 
-   - CRITICAL: Treat multi-word slang as SINGLE units (e.g. "Oh hell naw", "dead ass", "for real"). Do NOT split them.
-   - If a phrase like "Oh hell naw" is used, list it as ONE term.
-   - Meaning: Explain the usage/context (e.g. "Used to express strong disbelief").
-   - Example: A natural usage example.
-4. Output STRICTLY a JSON object.
+   - CRITICAL: Treat multi-word slang as SINGLE units (e.g. "Oh hell naw").
+   - Meaning: Explain the usage/context purely in ${targetLanguage}.
+   - Example: A natural usage example (keep the slang in English, but you can translate the rest of the sentence to ${targetLanguage} if appropriate).
+4. Output STRICTLY a valid JSON object.
+
+Output Language: ${targetLanguage}
+Output Language: ${targetLanguage}
+Output Language: ${targetLanguage}
 
 Structure:
 {
-  "sentence_meaning": "The overall translation/vibe.",
+  "sentence_meaning": "The overall translation/vibe written in ${targetLanguage}.",
   "terms": [
     {
       "term": "phrase or word",
-      "meaning": "contextual definition",
+      "meaning": "definition written in ${targetLanguage}",
       "example": "usage example"
     }
   ]
@@ -123,13 +128,13 @@ Structure:
             },
             {
                 role: "user",
-                content: text
+                content: `${text}\n\nIMPORTANT: Provide all definitions and translations in ${targetLanguage}.`
             }
         ],
         temperature: 0.3,
         stream: false
     };
-    console.log(`[Request] Sending to ${CONFIG.baseUrl}/${endpoint} with model ${modelId}`);
+    console.log(`[Request] Sending to ${CONFIG.baseUrl}/${endpoint} with model ${modelId} | Language: ${targetLanguage}`);
     // 3. Send Request
     let response = await fetch(`${CONFIG.baseUrl}/${endpoint}`, {
         method: "POST",
@@ -144,7 +149,7 @@ Structure:
         console.warn(`[First Attempt Failed] ${response.status}. Retrying with legacy completion endpoint...`);
         const legacyPayload = {
             model: modelId,
-            prompt: `${systemPrompt}\n\nUser: ${text}\n\nResponse:`,
+            prompt: `${systemPrompt}\n\nUser: ${text}\n\nIMPORTANT: Provide all definitions and translations in ${targetLanguage}.\n\nResponse:`,
             temperature: 0.3,
             max_tokens: 500
         };
@@ -188,6 +193,7 @@ async function POST(req) {
     try {
         const body = await req.json();
         const userMessage = body.message?.trim();
+        const language = body.language || "English";
         if (!userMessage) {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: "Message cannot be empty"
@@ -195,7 +201,7 @@ async function POST(req) {
                 status: 400
             });
         }
-        const reply = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$lm$2d$studio$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["analyzeText"])(userMessage);
+        const reply = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$lm$2d$studio$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["analyzeText"])(userMessage, language);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             reply
         });
