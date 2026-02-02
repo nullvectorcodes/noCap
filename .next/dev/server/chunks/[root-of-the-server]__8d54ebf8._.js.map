@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 112, "column": 0}, "map": {"version":3,"sources":["file:///Users/mohammadsaalim/projects/src/app/auth/logout/route.ts"],"sourcesContent":["import { signOut } from '@workos-inc/authkit-nextjs';\nimport { NextRequest } from 'next/server';\n\nexport async function GET(request: NextRequest) {\n    // Use returnTo to tell WorkOS where to send the user after logout.\n    // We point to the root URL (homepage).\n    // Note: This URL must be allowed in WorkOS dashboard if validating strict redirects, \n    // but typically for same-origin it might work or require config.\n    // If returnTo is not supported by the installed version, typescript will complain, \n    // but we will try this as per search results.\n\n    // Actually, per search, signOut takes options? \n    // Let's try passing the returnTo option.\n    await signOut({ returnTo: request.nextUrl.origin });\n}\n"],"names":[],"mappings":";;;;AAAA;;AAGO,eAAe,IAAI,OAAoB;IAC1C,mEAAmE;IACnE,uCAAuC;IACvC,sFAAsF;IACtF,iEAAiE;IACjE,oFAAoF;IACpF,8CAA8C;IAE9C,gDAAgD;IAChD,yCAAyC;IACzC,MAAM,IAAA,wLAAO,EAAC;QAAE,UAAU,QAAQ,OAAO,CAAC,MAAM;IAAC;AACrD"}}]
+}

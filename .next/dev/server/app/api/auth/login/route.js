@@ -1,0 +1,10 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/auth/login/route.js")
+R.c("server/chunks/node_modules_next_38615717._.js")
+R.c("server/chunks/node_modules_a8d586c8._.js")
+R.c("server/chunks/c1d14_@workos-inc_node_lib_88f2d8fd._.js")
+R.c("server/chunks/node_modules_@peculiar_webcrypto_build_webcrypto_es_adb1f8d3.js")
+R.c("server/chunks/node_modules_b57c62aa._.js")
+R.c("server/chunks/[root-of-the-server]__42099524._.js")
+R.c("server/chunks/_next-internal_server_app_api_auth_login_route_actions_d02a8f19.js")
+R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/auth/login/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/auth/login/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports

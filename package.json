@@ -32,9 +32,11 @@
     "sharp": "file:./sharp-mock"
   },
   "ignoreScripts": [
+    "sharp",
     "unrs-resolver"
   ],
   "trustedDependencies": [
+    "sharp",
     "unrs-resolver"
   ]
 }

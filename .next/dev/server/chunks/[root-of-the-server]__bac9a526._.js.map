@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 112, "column": 0}, "map": {"version":3,"sources":["file:///Users/mohammadsaalim/projects/src/proxy.ts"],"sourcesContent":["import { authkitMiddleware } from '@workos-inc/authkit-nextjs';\n\nexport default authkitMiddleware({\n    redirectUri: process.env.WORKOS_REDIRECT_URI,\n});\n\n// Match all request paths except for the ones starting with:\n// - api (API routes)\n// - _next/static (static files)\n// - _next/image (image optimization files)\n// - favicon.ico (favicon file)\nexport const config = {\n    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],\n};\n"],"names":[],"mappings":";;;;;;AAAA;;uCAEe,IAAA,sMAAiB,EAAC;IAC7B,aAAa,QAAQ,GAAG,CAAC,mBAAmB;AAChD;AAOO,MAAM,SAAS;IAClB,SAAS;QAAC;KAAoD;AAClE"}}]
+}
