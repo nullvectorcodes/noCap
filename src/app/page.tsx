@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Sparkles, Terminal, ArrowUp, Quote, MessageSquareText, Paperclip, X, Image as ImageIcon, ScanText } from "lucide-react";
+import { Send, Sparkles, Terminal, ArrowUp, Quote, MessageSquareText, Paperclip, X, Image as ImageIcon, ScanText, Mic, MicOff, Globe, Check } from "lucide-react";
 import clsx from "clsx";
 
 interface SlangDef {
@@ -26,6 +26,52 @@ interface Message {
   isError?: boolean;
 }
 
+const Typewriter = ({ words, className }: { words: string[], className?: string }) => {
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [currentText, setCurrentText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const word = words[currentWordIndex];
+
+    // Typing speeds
+    const typeSpeed = 100;
+    const deleteSpeed = 50;
+    const pauseTime = 2000;
+
+    const handleTyping = () => {
+      if (!isDeleting) {
+        // Typing
+        setCurrentText(word.substring(0, currentText.length + 1));
+
+        // Finished typing
+        if (currentText.length === word.length) {
+          setTimeout(() => setIsDeleting(true), pauseTime);
+        }
+      } else {
+        // Deleting
+        setCurrentText(word.substring(0, currentText.length - 1));
+
+        // Finished deleting
+        if (currentText.length === 0) {
+          setIsDeleting(false);
+          setCurrentWordIndex((prev) => (prev + 1) % words.length);
+        }
+      }
+    };
+
+    const timer = setTimeout(handleTyping, isDeleting ? deleteSpeed : typeSpeed);
+    return () => clearTimeout(timer);
+  }, [currentText, isDeleting, currentWordIndex, words]);
+
+  return (
+    <span className={className}>
+      {currentText}
+      <span className="w-[2px] h-[1em] bg-violet-400 inline-block ml-0.5 animate-pulse align-middle" />
+    </span>
+  );
+};
+
 export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,6 +79,30 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [targetLanguage, setTargetLanguage] = useState("English");
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+
+  const LANGUAGES = [
+    { code: "EN", name: "English (Default)", value: "English" },
+    { code: "HI", name: "Hindi", value: "Hindi" },
+    { code: "BN", name: "Bengali", value: "Bengali" },
+    { code: "TE", name: "Telugu", value: "Telugu" },
+    { code: "MR", name: "Marathi", value: "Marathi" },
+    { code: "TA", name: "Tamil", value: "Tamil" },
+    { code: "UR", name: "Urdu", value: "Urdu" },
+    { code: "GU", name: "Gujarati", value: "Gujarati" },
+    { code: "KN", name: "Kannada", value: "Kannada" },
+    { code: "ML", name: "Malayalam", value: "Malayalam" },
+    { code: "OR", name: "Odia", value: "Odia" },
+    { code: "PA", name: "Punjabi", value: "Punjabi" },
+    { code: "AS", name: "Assamese", value: "Assamese" },
+    { code: "MZ", name: "Mizo", value: "Mizo" },
+    { code: "ES", name: "Spanish", value: "Spanish" },
+    { code: "FR", name: "French", value: "French" },
+    { code: "DE", name: "German", value: "German" },
+    { code: "JP", name: "Japanese", value: "Japanese" },
+    { code: "STD", name: "Formal English", value: "Standard Formal English" },
+  ];
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,6 +157,11 @@ export default function Home() {
       body: JSON.stringify({ message: "ping" }),
     }).catch(() => { }); // Ignore errors, just want to trigger load
   }, []);
+
+
+
+
+
 
   const processImage = async (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
@@ -157,6 +232,7 @@ export default function Home() {
 
         const formData = new FormData();
         formData.append("image", processedBlob, "image.jpg");
+        formData.append("language", targetLanguage);
 
         setLoadingText("Reading text...");
         const res = await fetch("/api/analyze-image", {
@@ -170,7 +246,7 @@ export default function Home() {
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: userMsg.content }),
+          body: JSON.stringify({ message: userMsg.content, language: targetLanguage }),
         });
         data = await res.json();
       }
@@ -192,17 +268,33 @@ export default function Home() {
         try {
           const cleanJson = aiContent.replace(/```json/g, "").replace(/```/g, "").trim();
           const jsonStart = cleanJson.indexOf('{');
-          const jsonEnd = cleanJson.lastIndexOf('}');
 
-          if (jsonStart !== -1 && jsonEnd !== -1) {
-            const jsonObj = JSON.parse(cleanJson.substring(jsonStart, jsonEnd + 1));
+          if (jsonStart !== -1) {
+            let braceCount = 0;
+            let jsonEnd = -1;
 
-            // Validate structure
-            if (jsonObj.terms || jsonObj.sentence_meaning) {
-              parsedResult = {
-                sentence_meaning: jsonObj.sentence_meaning,
-                terms: Array.isArray(jsonObj.terms) ? jsonObj.terms : []
-              };
+            // robustly find the matching closing brace
+            for (let i = jsonStart; i < cleanJson.length; i++) {
+              if (cleanJson[i] === '{') braceCount++;
+              else if (cleanJson[i] === '}') {
+                braceCount--;
+                if (braceCount === 0) {
+                  jsonEnd = i;
+                  break;
+                }
+              }
+            }
+
+            if (jsonEnd !== -1) {
+              const jsonObj = JSON.parse(cleanJson.substring(jsonStart, jsonEnd + 1));
+
+              // Validate structure
+              if (jsonObj.terms || jsonObj.sentence_meaning) {
+                parsedResult = {
+                  sentence_meaning: jsonObj.sentence_meaning,
+                  terms: Array.isArray(jsonObj.terms) ? jsonObj.terms : []
+                };
+              }
             }
           }
         } catch (e) {
@@ -279,9 +371,13 @@ export default function Home() {
                 <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">
                   Decode the streets.
                 </h2>
-                <p className="text-neutral-400 text-base max-w-sm mx-auto leading-relaxed">
-                  Enter a sentence packed with slang, and I'll break it down for you. No cap.
-                </p>
+                <div className="h-6 flex items-center justify-center gap-1">
+                  <span className="text-neutral-400 text-base">Try searching:</span>
+                  <Typewriter
+                    words={["\"no cap\"", "\"run it back\"", "\"bet\"", "\"it's giving\"", "\"finna\"", "\"rizz\"", "\"simpin\"", "\"slay\""]}
+                    className="text-violet-400 text-base font-mono font-medium"
+                  />
+                </div>
               </div>
             </motion.div>
           )}
@@ -474,6 +570,67 @@ export default function Home() {
                 <Paperclip className="w-4 h-4" />
               </button>
 
+              <div className="relative">
+                <button
+                  onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                  className={clsx(
+                    "p-2 transition-colors hover:bg-white/5 rounded-full mr-1 flex items-center gap-1",
+                    showLanguageMenu ? "text-white bg-white/10" : "text-neutral-400 hover:text-white"
+                  )}
+                  title="Select Output Language"
+                >
+                  <Globe className="w-4 h-4" />
+                  {targetLanguage !== "English" && (
+                    <span className="text-[10px] font-bold bg-violet-600 text-white px-1 py-0.5 rounded-sm">
+                      {LANGUAGES.find(l => l.value === targetLanguage)?.code}
+                    </span>
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {showLanguageMenu && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowLanguageMenu(false)}
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                        className="absolute bottom-full mb-3 left-0 w-48 bg-[#18181b] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 p-1"
+                      >
+                        <div className="px-2 py-1.5 border-b border-white/5 mb-1">
+                          <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Translate to</span>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                          {LANGUAGES.map((lang) => (
+                            <button
+                              key={lang.code}
+                              onClick={() => {
+                                setTargetLanguage(lang.value);
+                                setShowLanguageMenu(false);
+                              }}
+                              className={clsx(
+                                "w-full text-left px-3 py-2 text-sm rounded-lg flex items-center justify-between transition-colors",
+                                targetLanguage === lang.value
+                                  ? "bg-violet-500/10 text-violet-300"
+                                  : "text-neutral-300 hover:bg-white/5 hover:text-white"
+                              )}
+                            >
+                              {lang.name}
+                              {targetLanguage === lang.value && <Check className="w-3.5 h-3.5" />}
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+
+
+
               <button
                 onClick={handleAnalyze}
                 disabled={(!input && !image) || loading}
@@ -497,6 +654,8 @@ export default function Home() {
           </p>
         </div>
       </div>
+
+
 
     </main>
   );
