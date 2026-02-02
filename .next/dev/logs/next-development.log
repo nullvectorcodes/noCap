@@ -1,0 +1,30 @@
+[00:00:00.451] Server  LOG     ✓ Ready in 313ms
+[00:00:27.375] Server  ERROR   LM Studio Error: "{\"error\":\"Error rendering prompt with jinja template: \\\"Only user and assistant roles are supported!\\\".\\n\\nThis is usually an issue with the model's prompt template. If you are using a popular model, you can try to search the model under lmstudio-community, which will have fixed prompt templates. If you cannot find one, you are welcome to post this issue to our discord or issue tracker on GitHub. Alternatively, if you know how to write jinja templates, you can override the prompt template in My Models > model settings > Prompt Template.\"}"
+[00:01:19.002] Server  LOG     ✓ Compiled in 169ms
+[00:01:38.212] Server  ERROR   LM Studio Error: "{\"error\":\"Error rendering prompt with jinja template: \\\"Only user and assistant roles are supported!\\\".\\n\\nThis is usually an issue with the model's prompt template. If you are using a popular model, you can try to search the model under lmstudio-community, which will have fixed prompt templates. If you cannot find one, you are welcome to post this issue to our discord or issue tracker on GitHub. Alternatively, if you know how to write jinja templates, you can override the prompt template in My Models > model settings > Prompt Template.\"}"
+[00:03:15.973] Server  LOG       Reload env: .env.local
+[00:03:16.071] Server  LOG       Reload env: .env.local
+[00:03:48.518] Server  ERROR   [LM Studio Error] Status: 400, Body: {"error":"Error rendering prompt with jinja template: \"Only user and assistant roles are supported!\".\n\nThis is usually an issue with the model's prompt template. If you are using a popular model, you can try to search the model under lmstudio-community, which will have fixed prompt templates. If you cannot find one, you are welcome to post this issue to our discord or issue tracker on GitHub. Alternatively, if you know how to write jinja templates, you can override the prompt template in My Models > model settings > Prompt Template."}
+[00:03:50.588] Server  ERROR   [LM Studio Error] Status: 400, Body: {"error":"Error rendering prompt with jinja template: \"Only user and assistant roles are supported!\".\n\nThis is usually an issue with the model's prompt template. If you are using a popular model, you can try to search the model under lmstudio-community, which will have fixed prompt templates. If you cannot find one, you are welcome to post this issue to our discord or issue tracker on GitHub. Alternatively, if you know how to write jinja templates, you can override the prompt template in My Models > model settings > Prompt Template."}
+[00:06:19.202] Server  ERROR   [LM Studio Error] Status: 400, Body: {"error":"Error rendering prompt with jinja template: \"Only user and assistant roles are supported!\".\n\nThis is usually an issue with the model's prompt template. If you are using a popular model, you can try to search the model under lmstudio-community, which will have fixed prompt templates. If you cannot find one, you are welcome to post this issue to our discord or issue tracker on GitHub. Alternatively, if you know how to write jinja templates, you can override the prompt template in My Models > model settings > Prompt Template."}
+[00:08:34.581] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:08:45.343] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:10:57.996] Server  LOG     ✓ Compiled in 72ms
+[00:11:31.596] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:13:26.271] Server  LOG     ✓ Compiled in 62ms
+[00:13:48.476] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:14:03.564] Server  ERROR   [Server Internal Error] TimeoutError: The operation was aborted due to timeout
+[00:14:19.942] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:16:11.494] Server  LOG     ✓ Compiled in 17ms
+[00:16:12.974] Server  LOG     ✓ Compiled in 14ms
+[00:16:24.484] Server  LOG     ✓ Compiled in 11ms
+[00:16:32.937] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:16:42.111] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:18:14.511] Server  LOG     ✓ Compiled in 31ms
+[00:18:16.377] Server  LOG     ✓ Compiled in 15ms
+[00:18:34.468] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:18:40.409] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:23:21.116] Server  LOG     ✓ Compiled in 28ms
+[00:23:43.204] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:23:51.239] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
+[00:24:25.551] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct
