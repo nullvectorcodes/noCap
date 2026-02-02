@@ -120,16 +120,16 @@ export default function Home() {
     <main className="flex flex-col h-screen bg-[#050505] text-white overflow-hidden relative font-sans selection:bg-white/20">
 
       {/* Background Ambience */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[20%] w-[60%] h-[60%] bg-purple-900/5 rounded-full blur-[150px]" />
-        <div className="absolute bottom-[-20%] right-[20%] w-[60%] h-[60%] bg-blue-900/5 rounded-full blur-[150px]" />
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] left-[10%] w-[50%] h-[50%] bg-violet-600/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[10%] w-[50%] h-[50%] bg-fuchsia-600/20 rounded-full blur-[120px] animate-pulse delay-1000" />
+        <div className="absolute top-[40%] left-[40%] w-[30%] h-[30%] bg-indigo-600/10 rounded-full blur-[100px]" />
       </div>
 
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-[#050505]/80 backdrop-blur-2xl border-b border-white/5 h-16 flex items-center justify-center transition-all duration-300">
         <div className="flex items-center gap-2.5 opacity-90 hover:opacity-100 transition-opacity cursor-default">
-          <Sparkles className="w-4 h-4 text-purple-400" />
-          <span className="font-semibold tracking-wide text-sm text-neutral-200">noCap AI</span>
+          <span className="font-bold tracking-tight text-lg bg-gradient-to-r from-fuchsia-400 to-violet-400 bg-clip-text text-transparent">.nocap</span>
         </div>
       </header>
 
@@ -148,15 +148,16 @@ export default function Home() {
               transition={{ duration: 0.5 }}
               className="flex flex-col items-center justify-center text-center space-y-6 pb-20"
             >
-              <div className="w-20 h-20 rounded-3xl bg-neutral-900/50 flex items-center justify-center border border-white/5 ring-1 ring-white/5 shadow-2xl shadow-purple-900/10">
-                <Terminal className="w-10 h-10 text-neutral-400" />
+              <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 flex items-center justify-center border border-white/5 ring-4 ring-white/5 shadow-2xl relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <Sparkles className="w-12 h-12 text-fuchsia-400 fill-fuchsia-400/20 animate-[pulse_3s_ease-in-out_infinite]" />
               </div>
-              <div className="space-y-2">
-                <h2 className="text-3xl font-semibold text-white tracking-tight">
+              <div className="space-y-3">
+                <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">
                   Decode the streets.
                 </h2>
-                <p className="text-neutral-500 text-sm max-w-xs mx-auto leading-relaxed">
-                  Enter a sentence packed with slang, and I'll break it down for you.
+                <p className="text-neutral-400 text-base max-w-sm mx-auto leading-relaxed">
+                  Enter a sentence packed with slang, and I'll break it down for you. No cap.
                 </p>
               </div>
             </motion.div>
@@ -176,10 +177,10 @@ export default function Home() {
                 )}
               >
                 <div className={clsx(
-                  "max-w-[90%] sm:max-w-[85%] rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-sm",
+                  "max-w-[90%] sm:max-w-[85%] p-4 sm:p-5 relative overflow-hidden transition-all duration-300",
                   msg.role === "user"
-                    ? "bg-[#333333] text-white"
-                    : "bg-transparent border border-white/10 w-full"
+                    ? "rounded-2xl rounded-tr-sm bg-neutral-800 text-white border border-white/5 shadow-sm"
+                    : "rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 w-full"
                 )}>
 
                   {/* AI Icon */}
@@ -280,8 +281,8 @@ export default function Home() {
       <div className="fixed bottom-0 w-full z-40 px-4 pb-6 sm:pb-8 pt-4">
         <div className="max-w-2xl mx-auto">
           <div className="relative">
-            <div className="absolute inset-0 bg-[#050505]/50 backdrop-blur-xl rounded-[32px] -m-2 opacity-90" />
-            <div className="relative flex items-center bg-[#18181b] rounded-[26px] border border-white/10 p-1.5 pr-2 focus-within:border-white/20 focus-within:ring-1 focus-within:ring-white/5 transition-all shadow-2xl shadow-purple-900/20">
+            <div className="absolute inset-0 bg-[#050505]/50 backdrop-blur-xl rounded-full -m-2 opacity-90" />
+            <div className="relative flex items-center bg-[#18181b]/80 backdrop-blur-md rounded-full border border-white/10 p-2 pr-3 focus-within:border-violet-500/50 focus-within:ring-4 focus-within:ring-violet-500/10 transition-all duration-300 shadow-2xl shadow-violet-900/20">
               <input
                 ref={inputRef}
                 type="text"
@@ -299,7 +300,7 @@ export default function Home() {
                 className={clsx(
                   "ml-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200",
                   input.trim() && !loading
-                    ? "bg-white text-black hover:scale-105 active:scale-95"
+                    ? "bg-white text-black hover:scale-110 active:scale-95 shadow-lg shadow-white/20"
                     : "bg-neutral-800 text-neutral-600 cursor-not-allowed"
                 )}
               >
