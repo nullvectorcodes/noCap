@@ -2,18 +2,26 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Sparkles, Terminal, User, Bot, Copy, Check, Info, ArrowUp } from "lucide-react";
+import { Send, Sparkles, Terminal, ArrowUp, Quote, MessageSquareText } from "lucide-react";
 import clsx from "clsx";
+
+interface SlangDef {
+  term: string;
+  meaning: string;
+  example: string;
+}
+
+interface ParsedResult {
+  sentence_meaning?: string;
+  terms?: SlangDef[];
+}
 
 interface Message {
   id: string;
   role: "user" | "ai";
-  content: string;
-  meta?: {
-    meaning?: string;
-    example?: string;
-  };
-  timestamp: number;
+  content: string; // Raw content string
+  parsed?: ParsedResult; // Structured data if parsing succeeds
+  isError?: boolean;
 }
 
 export default function Home() {
@@ -23,7 +31,6 @@ export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll to bottom of chat
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -35,7 +42,6 @@ export default function Home() {
       id: Date.now().toString(),
       role: "user",
       content: input.trim(),
-      timestamp: Date.now(),
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -52,24 +58,32 @@ export default function Home() {
       const data = await res.json();
 
       let aiContent = "";
-      let meta = {};
+      let parsedResult: ParsedResult | undefined = undefined;
 
       if (data.error) {
         aiContent = `⚠️ Error: ${data.error}`;
       } else {
-        const rawContent = data.reply;
-        // Basic parsing for the structured format we requested
-        const meaningMatch = rawContent.match(/Meaning:\s*(.*?)(?=\n|Example:|$)/);
-        const exampleMatch = rawContent.match(/Example:\s*(.*?)(?=$)/);
+        aiContent = data.reply;
 
-        if (meaningMatch) {
-          meta = {
-            meaning: meaningMatch ? meaningMatch[1].trim() : undefined,
-            example: exampleMatch ? exampleMatch[1].trim() : undefined,
-          };
-          aiContent = rawContent; // Keeping raw for fallback
-        } else {
-          aiContent = rawContent;
+        // Attempt JSON parsing
+        try {
+          const cleanJson = aiContent.replace(/```json/g, "").replace(/```/g, "").trim();
+          const jsonStart = cleanJson.indexOf('{');
+          const jsonEnd = cleanJson.lastIndexOf('}');
+
+          if (jsonStart !== -1 && jsonEnd !== -1) {
+            const jsonObj = JSON.parse(cleanJson.substring(jsonStart, jsonEnd + 1));
+
+            // Validate structure
+            if (jsonObj.terms || jsonObj.sentence_meaning) {
+              parsedResult = {
+                sentence_meaning: jsonObj.sentence_meaning,
+                terms: Array.isArray(jsonObj.terms) ? jsonObj.terms : []
+              };
+            }
+          }
+        } catch (e) {
+          console.log("Failed to parse AI JSON, falling back to raw text", e);
         }
       }
 
@@ -77,8 +91,8 @@ export default function Home() {
         id: (Date.now() + 1).toString(),
         role: "ai",
         content: aiContent,
-        meta: Object.keys(meta).length > 0 ? meta : undefined,
-        timestamp: Date.now(),
+        parsed: parsedResult,
+        isError: !!data.error
       };
 
       setMessages((prev) => [...prev, aiMsg]);
@@ -88,7 +102,7 @@ export default function Home() {
         id: (Date.now() + 1).toString(),
         role: "ai",
         content: "⚠️ Failed to connect to the server. Is LM Studio running?",
-        timestamp: Date.now(),
+        isError: true
       }]);
     } finally {
       setLoading(false);
@@ -105,13 +119,13 @@ export default function Home() {
   return (
     <main className="flex flex-col h-screen bg-[#050505] text-white overflow-hidden relative font-sans selection:bg-white/20">
 
-      {/* Background Ambience - Subtle and Premium */}
+      {/* Background Ambience */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-20%] left-[20%] w-[60%] h-[60%] bg-purple-900/5 rounded-full blur-[150px]" />
         <div className="absolute bottom-[-20%] right-[20%] w-[60%] h-[60%] bg-blue-900/5 rounded-full blur-[150px]" />
       </div>
 
-      {/* Header - Minimalist */}
+      {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-[#050505]/80 backdrop-blur-2xl border-b border-white/5 h-16 flex items-center justify-center transition-all duration-300">
         <div className="flex items-center gap-2.5 opacity-90 hover:opacity-100 transition-opacity cursor-default">
           <Sparkles className="w-4 h-4 text-purple-400" />
@@ -126,7 +140,7 @@ export default function Home() {
           messages.length === 0 && "justify-center"
         )}>
 
-          {/* Empty State - Elegant */}
+          {/* Empty State */}
           {messages.length === 0 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -142,7 +156,7 @@ export default function Home() {
                   Decode the streets.
                 </h2>
                 <p className="text-neutral-500 text-sm max-w-xs mx-auto leading-relaxed">
-                  Your personal AI interpreter for modern slang. <br /> Private, offline, and instant.
+                  Enter a sentence packed with slang, and I'll break it down for you.
                 </p>
               </div>
             </motion.div>
@@ -162,46 +176,77 @@ export default function Home() {
                 )}
               >
                 <div className={clsx(
-                  "max-w-[85%] sm:max-w-[80%] rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-sm",
+                  "max-w-[90%] sm:max-w-[85%] rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-sm",
                   msg.role === "user"
-                    ? "bg-[#333333] text-white" // Sophisticated dark grey for user
-                    : "bg-transparent border border-white/10" // Clean transparent for AI
+                    ? "bg-[#333333] text-white"
+                    : "bg-transparent border border-white/10 w-full"
                 )}>
 
                   {/* AI Icon */}
                   {msg.role === "ai" && (
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center">
-                        <Sparkles className="w-3 h-3 text-white" />
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                        <Sparkles className="w-3.5 h-3.5 text-white" />
                       </div>
-                      <span className="text-xs font-semibold text-neutral-400">noCap</span>
+                      <span className="text-xs font-bold tracking-wider text-neutral-400 uppercase">Analysis</span>
                     </div>
                   )}
 
                   <div className={clsx(msg.role === "ai" ? "pl-0" : "")}>
-                    {msg.role === "ai" && msg.meta ? (
-                      // Premium Structured Result
-                      <div className="space-y-5">
-                        <div className="group/meaning">
-                          <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-bold mb-1.5 ml-0.5">Meaning</p>
-                          <p className="text-lg leading-7 font-normal text-neutral-100 selection:bg-purple-500/30">
-                            {msg.meta.meaning}
-                          </p>
-                        </div>
-                        {msg.meta.example && (
-                          <div className="relative pl-4 border-l-2 border-purple-500/30 py-1">
-                            <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-bold mb-1.5">Example</p>
-                            <p className="font-mono text-[13px] md:text-sm text-neutral-300 italic leading-relaxed">
-                              "{msg.meta.example}"
+
+                    {/* Structured Result */}
+                    {msg.role === "ai" && msg.parsed ? (
+                      <div className="flex flex-col gap-6">
+
+                        {/* Overall Sentence Meaning */}
+                        {msg.parsed.sentence_meaning && (
+                          <div className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-5 border border-white/10 shadow-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <MessageSquareText className="w-4 h-4 text-purple-300 opacity-80" />
+                              <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Translation</h3>
+                            </div>
+                            <p className="text-lg text-white font-medium leading-relaxed">
+                              {msg.parsed.sentence_meaning}
                             </p>
+                          </div>
+                        )}
+
+                        {/* Term Breakdown */}
+                        {msg.parsed.terms && msg.parsed.terms.length > 0 && (
+                          <div className="flex flex-col gap-4">
+                            <div className="px-1">
+                              <h4 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Breakdown</h4>
+                            </div>
+                            {msg.parsed.terms.map((item, idx) => (
+                              <div key={idx} className="bg-white/5 border border-white/10 rounded-xl p-4 sm:p-5 hover:bg-white/10 transition-colors">
+                                <div className="flex items-baseline gap-2 mb-2">
+                                  <h3 className="text-lg font-bold text-white tracking-tight capitalize">
+                                    {item.term}
+                                  </h3>
+                                  <span className="text-xs text-neutral-500 font-medium uppercase tracking-widest">Slang</span>
+                                </div>
+
+                                <p className="text-neutral-300 text-[15px] leading-relaxed mb-4 font-light">
+                                  {item.meaning}
+                                </p>
+
+                                <div className="bg-black/30 rounded-lg p-3 border-l-2 border-purple-500/50 flex gap-3">
+                                  <Quote className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5 opacity-70" />
+                                  <p className="font-mono text-xs sm:text-sm text-neutral-400 italic leading-relaxed">
+                                    "{item.example}"
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
                     ) : (
-                      // Raw Text / User Message
+                      // Fallback / Raw Text
                       <p className={clsx(
                         "text-[15px] sm:text-base leading-relaxed whitespace-pre-wrap",
-                        msg.role === "user" ? "font-normal text-white" : "text-neutral-300"
+                        msg.role === "user" ? "font-normal text-white" : "text-neutral-300",
+                        msg.isError && "text-red-400"
                       )}>
                         {msg.content}
                       </p>
@@ -212,7 +257,7 @@ export default function Home() {
             ))}
           </AnimatePresence>
 
-          {/* Loading Indicator - Subtle */}
+          {/* Loading Indicator */}
           {loading && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -231,13 +276,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Input Footer - Apple Style */}
+      {/* Input Footer */}
       <div className="fixed bottom-0 w-full z-40 px-4 pb-6 sm:pb-8 pt-4">
         <div className="max-w-2xl mx-auto">
           <div className="relative">
-            {/* Blur backdrop for input */}
             <div className="absolute inset-0 bg-[#050505]/50 backdrop-blur-xl rounded-[32px] -m-2 opacity-90" />
-
             <div className="relative flex items-center bg-[#18181b] rounded-[26px] border border-white/10 p-1.5 pr-2 focus-within:border-white/20 focus-within:ring-1 focus-within:ring-white/5 transition-all shadow-2xl shadow-purple-900/20">
               <input
                 ref={inputRef}
@@ -245,7 +288,7 @@ export default function Home() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Type a slang phrase..."
+                placeholder="Type a slang phrase (e.g. 'no cap', 'bet')..."
                 className="flex-1 bg-transparent border-none outline-none text-white placeholder-neutral-500 h-[44px] px-4 text-[15px]"
                 disabled={loading}
                 autoFocus
