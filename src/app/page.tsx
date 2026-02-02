@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Sparkles, Terminal, ArrowUp, Quote, MessageSquareText, Paperclip, X, Image as ImageIcon, ScanText, Mic, MicOff, Globe, Check } from "lucide-react";
+import { Send, Sparkles, Terminal, ArrowUp, Quote, MessageSquareText, Paperclip, X, Image as ImageIcon, ScanText, Mic, MicOff, Globe, Check, Sun, Moon, Clipboard } from "lucide-react";
 import clsx from "clsx";
 
 interface SlangDef {
@@ -81,6 +81,9 @@ export default function Home() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [targetLanguage, setTargetLanguage] = useState("English");
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
   const LANGUAGES = [
     { code: "EN", name: "English (Default)", value: "English" },
@@ -332,20 +335,47 @@ export default function Home() {
   };
 
   return (
-    <main className="flex flex-col h-screen bg-[#050505] text-white overflow-hidden relative font-sans selection:bg-white/20">
+    <main className={clsx(
+      "flex flex-col h-screen overflow-hidden relative font-sans selection:bg-violet-500/20 transition-colors duration-500",
+      theme === 'dark' ? "bg-[#050505] text-white" : "bg-[#fafafa] text-neutral-900"
+    )}>
 
       {/* Background Ambience */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[10%] w-[50%] h-[50%] bg-violet-600/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[10%] w-[50%] h-[50%] bg-fuchsia-600/20 rounded-full blur-[120px] animate-pulse delay-1000" />
-        <div className="absolute top-[40%] left-[40%] w-[30%] h-[30%] bg-indigo-600/10 rounded-full blur-[100px]" />
+        <div className={clsx(
+          "absolute top-[-10%] left-[10%] w-[50%] h-[50%] rounded-full blur-[120px] animate-pulse transition-colors duration-500",
+          theme === 'dark' ? "bg-violet-600/20" : "bg-violet-400/10"
+        )} />
+        <div className={clsx(
+          "absolute bottom-[-10%] right-[10%] w-[50%] h-[50%] rounded-full blur-[120px] animate-pulse delay-1000 transition-colors duration-500",
+          theme === 'dark' ? "bg-fuchsia-600/20" : "bg-fuchsia-400/10"
+        )} />
+        <div className={clsx(
+          "absolute top-[40%] left-[40%] w-[30%] h-[30%] rounded-full blur-[100px] transition-colors duration-500",
+          theme === 'dark' ? "bg-indigo-600/10" : "bg-indigo-400/10"
+        )} />
       </div>
 
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#050505]/80 backdrop-blur-2xl border-b border-white/5 h-16 flex items-center justify-center transition-all duration-300">
+      <header className={clsx(
+        "fixed top-0 w-full z-50 backdrop-blur-2xl border-b h-16 flex items-center justify-between px-6 transition-all duration-300",
+        theme === 'dark' ? "bg-[#050505]/80 border-white/5" : "bg-[#fafafa]/80 border-black/5"
+      )}>
+        <div className="w-8" /> {/* Spacer for centering */}
+
         <div className="flex items-center gap-2.5 opacity-90 hover:opacity-100 transition-opacity cursor-default">
           <span className="font-bold tracking-tight text-lg bg-gradient-to-r from-fuchsia-400 to-violet-400 bg-clip-text text-transparent">.nocap</span>
         </div>
+
+        <button
+          onClick={toggleTheme}
+          className={clsx(
+            "p-2 rounded-full transition-colors w-8 h-8 flex items-center justify-center",
+            theme === 'dark' ? "text-neutral-400 hover:text-white hover:bg-white/10" : "text-neutral-500 hover:text-black hover:bg-black/5"
+          )}
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </button>
       </header>
 
       {/* Chat Area */}
@@ -363,19 +393,33 @@ export default function Home() {
               transition={{ duration: 0.5 }}
               className="flex flex-col items-center justify-center text-center space-y-6 pb-20"
             >
-              <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 flex items-center justify-center border border-white/5 ring-4 ring-white/5 shadow-2xl relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <Sparkles className="w-12 h-12 text-fuchsia-400 fill-fuchsia-400/20 animate-[pulse_3s_ease-in-out_infinite]" />
+              <div className={clsx(
+                "w-24 h-24 rounded-[2rem] flex items-center justify-center border ring-4 shadow-2xl relative overflow-hidden group transition-all duration-300",
+                theme === 'dark'
+                  ? "bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 border-white/5 ring-white/5"
+                  : "bg-white border-violet-100 ring-violet-50"
+              )}>
+                <div className={clsx(
+                  "absolute inset-0 bg-gradient-to-tr to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+                  theme === 'dark' ? "from-violet-500/20" : "from-violet-500/5"
+                )} />
+                <Sparkles className={clsx(
+                  "w-12 h-12 animate-[pulse_3s_ease-in-out_infinite]",
+                  theme === 'dark' ? "text-fuchsia-400 fill-fuchsia-400/20" : "text-fuchsia-500 fill-fuchsia-500/10"
+                )} />
               </div>
               <div className="space-y-3">
-                <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">
+                <h2 className={clsx(
+                  "text-4xl font-bold tracking-tight bg-clip-text text-transparent",
+                  theme === 'dark' ? "bg-gradient-to-b from-white to-white/60" : "bg-gradient-to-b from-neutral-900 to-neutral-600"
+                )}>
                   Decode the streets.
                 </h2>
                 <div className="h-6 flex items-center justify-center gap-1">
-                  <span className="text-neutral-400 text-base">Try searching:</span>
+                  <span className={clsx("text-base transition-colors", theme === 'dark' ? "text-neutral-400" : "text-neutral-500")}>Try searching:</span>
                   <Typewriter
                     words={["\"no cap\"", "\"run it back\"", "\"bet\"", "\"it's giving\"", "\"finna\"", "\"rizz\"", "\"simpin\"", "\"slay\""]}
-                    className="text-violet-400 text-base font-mono font-medium"
+                    className={clsx("text-base font-mono font-medium", theme === 'dark' ? "text-violet-400" : "text-violet-600")}
                   />
                 </div>
               </div>
@@ -398,25 +442,25 @@ export default function Home() {
                 <div className={clsx(
                   "max-w-[90%] sm:max-w-[85%] p-4 sm:p-5 relative overflow-hidden transition-all duration-300",
                   msg.role === "user"
-                    ? "rounded-2xl rounded-tr-sm bg-neutral-800 text-white border border-white/5 shadow-sm"
-                    : "rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 w-full"
+                    ? (theme === 'dark' ? "rounded-2xl rounded-tr-sm bg-neutral-800 text-white border border-white/5 shadow-sm" : "rounded-2xl rounded-tr-sm bg-neutral-900 text-white shadow-md")
+                    : (theme === 'dark' ? "rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 w-full" : "rounded-2xl bg-white border border-neutral-100 shadow-sm w-full")
                 )}>
 
                   {/* User Image */}
                   {msg.image && (
-                    <div className="mb-3 rounded-lg overflow-hidden border border-white/10">
+                    <div className={clsx("mb-3 rounded-lg overflow-hidden border", theme === 'dark' ? "border-white/10" : "border-neutral-200")}>
                       <img src={msg.image} alt="User upload" className="w-auto h-auto max-h-48 max-w-full object-contain bg-black/50" />
                     </div>
                   )}
 
                   {/* Extracted Text Indicator */}
                   {msg.extractedText && (
-                    <div className="mb-3 pl-3 border-l-2 border-violet-500/50">
+                    <div className={clsx("mb-3 pl-3 border-l-2", theme === 'dark' ? "border-violet-500/50" : "border-violet-500")}>
                       <div className="flex items-center gap-2 mb-1">
-                        <ScanText className="w-3 h-3 text-violet-400" />
-                        <span className="text-[10px] uppercase tracking-widest text-violet-300/70 font-semibold">Detected Text</span>
+                        <ScanText className={clsx("w-3 h-3", theme === 'dark' ? "text-violet-400" : "text-violet-600")} />
+                        <span className={clsx("text-[10px] uppercase tracking-widest font-semibold", theme === 'dark' ? "text-violet-300/70" : "text-violet-600/70")}>Detected Text</span>
                       </div>
-                      <p className="text-xs text-neutral-400 font-mono italic leading-relaxed line-clamp-4 hover:line-clamp-none transition-all">
+                      <p className={clsx("text-xs font-mono italic leading-relaxed line-clamp-4 hover:line-clamp-none transition-all", theme === 'dark' ? "text-neutral-400" : "text-neutral-500")}>
                         {msg.extractedText}
                       </p>
                     </div>
@@ -425,10 +469,13 @@ export default function Home() {
                   {/* AI Icon */}
                   {msg.role === "ai" && (
                     <div className="flex items-center gap-2 mb-4">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                      <div className={clsx(
+                        "w-6 h-6 rounded-full flex items-center justify-center shadow-lg",
+                        theme === 'dark' ? "bg-gradient-to-tr from-purple-500 to-indigo-500 shadow-purple-500/20" : "bg-gradient-to-tr from-violet-600 to-fuchsia-600 shadow-violet-500/20"
+                      )}>
                         <Sparkles className="w-3.5 h-3.5 text-white" />
                       </div>
-                      <span className="text-xs font-bold tracking-wider text-neutral-400 uppercase">Analysis</span>
+                      <span className={clsx("text-xs font-bold tracking-wider uppercase", theme === 'dark' ? "text-neutral-400" : "text-neutral-500")}>Analysis</span>
                     </div>
                   )}
 
@@ -440,12 +487,15 @@ export default function Home() {
 
                         {/* Overall Sentence Meaning */}
                         {msg.parsed.sentence_meaning && (
-                          <div className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-5 border border-white/10 shadow-lg">
+                          <div className={clsx(
+                            "rounded-xl p-5 border shadow-lg transition-colors",
+                            theme === 'dark' ? "bg-gradient-to-br from-white/10 to-white/5 border-white/10" : "bg-gradient-to-br from-violet-50/50 to-fuchsia-50/50 border-violet-100"
+                          )}>
                             <div className="flex items-center gap-2 mb-2">
-                              <MessageSquareText className="w-4 h-4 text-purple-300 opacity-80" />
-                              <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Translation</h3>
+                              <MessageSquareText className={clsx("w-4 h-4 opacity-80", theme === 'dark' ? "text-purple-300" : "text-violet-600")} />
+                              <h3 className={clsx("text-xs font-bold uppercase tracking-widest", theme === 'dark' ? "text-neutral-400" : "text-violet-900/60")}>Translation</h3>
                             </div>
-                            <p className="text-lg text-white font-medium leading-relaxed">
+                            <p className={clsx("text-lg font-medium leading-relaxed", theme === 'dark' ? "text-white" : "text-neutral-900")}>
                               {msg.parsed.sentence_meaning}
                             </p>
                           </div>
@@ -458,21 +508,27 @@ export default function Home() {
                               <h4 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Breakdown</h4>
                             </div>
                             {msg.parsed.terms.map((item, idx) => (
-                              <div key={idx} className="bg-white/5 border border-white/10 rounded-xl p-4 sm:p-5 hover:bg-white/10 transition-colors">
+                              <div key={idx} className={clsx(
+                                "border rounded-xl p-4 sm:p-5 transition-colors",
+                                theme === 'dark' ? "bg-white/5 border-white/10 hover:bg-white/10" : "bg-white border-neutral-200 hover:border-violet-200 hover:shadow-md"
+                              )}>
                                 <div className="flex items-baseline gap-2 mb-2">
-                                  <h3 className="text-lg font-bold text-white tracking-tight capitalize">
+                                  <h3 className={clsx("text-lg font-bold tracking-tight capitalize", theme === 'dark' ? "text-white" : "text-neutral-900")}>
                                     {item.term}
                                   </h3>
                                   <span className="text-xs text-neutral-500 font-medium uppercase tracking-widest">Slang</span>
                                 </div>
 
-                                <p className="text-neutral-300 text-[15px] leading-relaxed mb-4 font-light">
+                                <p className={clsx("text-[15px] leading-relaxed mb-4 font-light", theme === 'dark' ? "text-neutral-300" : "text-neutral-700")}>
                                   {item.meaning}
                                 </p>
 
-                                <div className="bg-black/30 rounded-lg p-3 border-l-2 border-purple-500/50 flex gap-3">
-                                  <Quote className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5 opacity-70" />
-                                  <p className="font-mono text-xs sm:text-sm text-neutral-400 italic leading-relaxed">
+                                <div className={clsx(
+                                  "rounded-lg p-3 border-l-2 flex gap-3",
+                                  theme === 'dark' ? "bg-black/30 border-purple-500/50" : "bg-neutral-50 border-violet-500"
+                                )}>
+                                  <Quote className={clsx("w-4 h-4 flex-shrink-0 mt-0.5 opacity-70", theme === 'dark' ? "text-purple-400" : "text-violet-600")} />
+                                  <p className={clsx("font-mono text-xs sm:text-sm italic leading-relaxed", theme === 'dark' ? "text-neutral-400" : "text-neutral-600")}>
                                     "{item.example}"
                                   </p>
                                 </div>
@@ -485,7 +541,7 @@ export default function Home() {
                       // Fallback / Raw Text
                       <p className={clsx(
                         "text-[15px] sm:text-base leading-relaxed whitespace-pre-wrap",
-                        msg.role === "user" ? "font-normal text-white" : "text-neutral-300",
+                        msg.role === "user" ? "font-normal text-white" : (theme === 'dark' ? "text-neutral-300" : "text-neutral-700"),
                         msg.isError && "text-red-400"
                       )}>
                         {msg.content}
@@ -523,8 +579,16 @@ export default function Home() {
       <div className="fixed bottom-0 w-full z-40 px-4 pb-6 sm:pb-8 pt-4">
         <div className="max-w-2xl mx-auto">
           <div className="relative">
-            <div className="absolute inset-0 bg-[#050505]/50 backdrop-blur-xl rounded-full -m-2 opacity-90" />
-            <div className="relative flex items-center bg-[#18181b]/80 backdrop-blur-md rounded-full border border-white/10 p-2 pr-3 focus-within:border-violet-500/50 focus-within:ring-4 focus-within:ring-violet-500/10 transition-all duration-300 shadow-2xl shadow-violet-900/20">
+            <div className={clsx(
+              "absolute inset-0 backdrop-blur-xl rounded-full -m-2 opacity-90 transition-colors",
+              theme === 'dark' ? "bg-[#050505]/50" : "bg-[#fafafa]/50"
+            )} />
+            <div className={clsx(
+              "relative flex items-center backdrop-blur-md rounded-full border p-2 pr-3 transition-all duration-300 shadow-2xl",
+              theme === 'dark'
+                ? "bg-[#18181b]/80 border-white/10 focus-within:border-violet-500/50 focus-within:ring-violet-500/10 shadow-violet-900/20"
+                : "bg-white/80 border-neutral-200 focus-within:border-violet-500/50 focus-within:ring-violet-500/10 shadow-black/5"
+            )}>
               <input
                 type="file"
                 ref={fileInputRef}
@@ -539,8 +603,8 @@ export default function Home() {
               {imagePreview && (
                 <div className="absolute bottom-full left-0 mb-3 ml-2">
                   <div className="relative group">
-                    <img src={imagePreview} alt="Preview" className="h-16 w-auto rounded-lg border border-white/10 shadow-xl bg-neutral-900 object-cover" />
-                    <button onClick={removeImage} className="absolute -top-1.5 -right-1.5 bg-neutral-800 text-white rounded-full p-0.5 border border-white/20 shadow-sm hover:bg-neutral-700 transition-colors">
+                    <img src={imagePreview} alt="Preview" className={clsx("h-16 w-auto rounded-lg border shadow-xl object-cover", theme === 'dark' ? "border-white/10 bg-neutral-900" : "border-neutral-200 bg-white")} />
+                    <button onClick={removeImage} className={clsx("absolute -top-1.5 -right-1.5 rounded-full p-0.5 border shadow-sm transition-colors", theme === 'dark' ? "bg-neutral-800 text-white border-white/20 hover:bg-neutral-700" : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50")}>
                       <X className="w-3 h-3" />
                     </button>
                   </div>
@@ -554,7 +618,10 @@ export default function Home() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={image ? "Add a caption (optional)..." : "Type a slang phrase or paste an image..."}
-                className="flex-1 bg-transparent border-none outline-none text-white placeholder-neutral-500 h-[44px] px-4 text-[15px]"
+                className={clsx(
+                  "flex-1 bg-transparent border-none outline-none placeholder-neutral-500 h-[44px] px-4 text-[15px]",
+                  theme === 'dark' ? "text-white" : "text-neutral-900"
+                )}
                 disabled={loading}
                 autoFocus
                 onPaste={(e) => {
@@ -563,8 +630,29 @@ export default function Home() {
               />
 
               <button
+                onClick={async () => {
+                  try {
+                    const text = await navigator.clipboard.readText();
+                    if (text) setInput(prev => prev + text);
+                  } catch (err) {
+                    console.error('Failed to read clipboard', err);
+                  }
+                }}
+                className={clsx(
+                  "p-2 transition-colors rounded-full mr-1",
+                  theme === 'dark' ? "text-neutral-400 hover:text-white hover:bg-white/5" : "text-neutral-400 hover:text-neutral-900 hover:bg-black/5"
+                )}
+                title="Paste from Clipboard"
+              >
+                <Clipboard className="w-4 h-4" />
+              </button>
+
+              <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 text-neutral-400 hover:text-white transition-colors hover:bg-white/5 rounded-full mr-1"
+                className={clsx(
+                  "p-2 transition-colors rounded-full mr-1",
+                  theme === 'dark' ? "text-neutral-400 hover:text-white hover:bg-white/5" : "text-neutral-400 hover:text-neutral-900 hover:bg-black/5"
+                )}
                 title="Upload Image"
               >
                 <Paperclip className="w-4 h-4" />
@@ -574,8 +662,10 @@ export default function Home() {
                 <button
                   onClick={() => setShowLanguageMenu(!showLanguageMenu)}
                   className={clsx(
-                    "p-2 transition-colors hover:bg-white/5 rounded-full mr-1 flex items-center gap-1",
-                    showLanguageMenu ? "text-white bg-white/10" : "text-neutral-400 hover:text-white"
+                    "p-2 transition-colors rounded-full mr-1 flex items-center gap-1",
+                    showLanguageMenu
+                      ? (theme === 'dark' ? "text-white bg-white/10" : "text-black bg-black/5")
+                      : (theme === 'dark' ? "text-neutral-400 hover:text-white hover:bg-white/5" : "text-neutral-400 hover:text-black hover:bg-black/5")
                   )}
                   title="Select Output Language"
                 >
@@ -598,9 +688,12 @@ export default function Home() {
                         initial={{ opacity: 0, scale: 0.95, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                        className="absolute bottom-full mb-3 left-0 w-48 bg-[#18181b] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 p-1"
+                        className={clsx(
+                          "absolute bottom-full mb-3 left-0 w-48 border rounded-xl shadow-2xl overflow-hidden z-50 p-1",
+                          theme === 'dark' ? "bg-[#18181b] border-white/10" : "bg-white border-neutral-200"
+                        )}
                       >
-                        <div className="px-2 py-1.5 border-b border-white/5 mb-1">
+                        <div className={clsx("px-2 py-1.5 border-b mb-1", theme === 'dark' ? "border-white/5" : "border-neutral-100")}>
                           <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Translate to</span>
                         </div>
                         <div className="max-h-48 overflow-y-auto custom-scrollbar">
@@ -614,8 +707,8 @@ export default function Home() {
                               className={clsx(
                                 "w-full text-left px-3 py-2 text-sm rounded-lg flex items-center justify-between transition-colors",
                                 targetLanguage === lang.value
-                                  ? "bg-violet-500/10 text-violet-300"
-                                  : "text-neutral-300 hover:bg-white/5 hover:text-white"
+                                  ? "bg-violet-500/10 text-violet-500 font-medium"
+                                  : (theme === 'dark' ? "text-neutral-300 hover:bg-white/5 hover:text-white" : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900")
                               )}
                             >
                               {lang.name}
@@ -629,27 +722,25 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-
-
               <button
                 onClick={handleAnalyze}
                 disabled={(!input && !image) || loading}
                 className={clsx(
                   "ml-1 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200",
                   (input.trim() || image) && !loading
-                    ? "bg-white text-black hover:scale-110 active:scale-95 shadow-lg shadow-white/20"
-                    : "bg-neutral-800 text-neutral-600 cursor-not-allowed"
+                    ? (theme === 'dark' ? "bg-white text-black hover:scale-110 active:scale-95 shadow-lg shadow-white/20" : "bg-neutral-900 text-white hover:scale-110 active:scale-95 shadow-lg shadow-black/20")
+                    : (theme === 'dark' ? "bg-neutral-800 text-neutral-600 cursor-not-allowed" : "bg-neutral-200 text-neutral-400 cursor-not-allowed")
                 )}
               >
                 {loading ? (
-                  <div className="w-3.5 h-3.5 border-2 border-neutral-400 border-t-neutral-800 rounded-full animate-spin" />
+                  <div className={clsx("w-3.5 h-3.5 border-2 border-t-transparent rounded-full animate-spin", theme === 'dark' ? "border-neutral-400" : "border-neutral-500")} />
                 ) : (
                   <ArrowUp className="w-4 h-4 stroke-[3]" />
                 )}
               </button>
             </div>
           </div>
-          <p className="text-center text-[10px] text-neutral-700 mt-3 font-medium tracking-wide">
+          <p className={clsx("text-center text-[10px] mt-3 font-medium tracking-wide", theme === 'dark' ? "text-neutral-700" : "text-neutral-400")}>
             Powered by Local LM Studio
           </p>
         </div>
