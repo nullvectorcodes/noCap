@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Sparkles, Terminal, ArrowUp, Quote, MessageSquareText } from "lucide-react";
+import { Send, Sparkles, Terminal, ArrowUp, Quote, MessageSquareText, Paperclip, X, Image as ImageIcon, ScanText } from "lucide-react";
 import clsx from "clsx";
 
 interface SlangDef {
@@ -20,6 +20,8 @@ interface Message {
   id: string;
   role: "user" | "ai";
   content: string; // Raw content string
+  image?: string;
+  extractedText?: string;
   parsed?: ParsedResult; // Structured data if parsing succeeds
   isError?: boolean;
 }
@@ -27,35 +29,156 @@ interface Message {
 export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("Analyzing...");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  }, [messages, loading, imagePreview]);
+
+  // Handle Global Paste
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (items) {
+        for (const item of items) {
+          if (item.type.indexOf("image") !== -1) {
+            const blob = item.getAsFile();
+            if (blob) {
+              handleImageSelect(blob);
+              e.preventDefault();
+            }
+          }
+        }
+      }
+    };
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, []);
+
+  const handleImageSelect = (file: File) => {
+    if (file.type.startsWith("image/")) {
+      setImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // LLM Warm-up
+  useEffect(() => {
+    // Send a minimal request to ensure model is loaded
+    fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: "ping" }),
+    }).catch(() => { }); // Ignore errors, just want to trigger load
+  }, []);
+
+  const processImage = async (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject("Canvas error");
+
+        // Resize: Max width 1000px
+        const MAX_WIDTH = 1000;
+        let width = img.width;
+        let height = img.height;
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Grayscale conversion
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+          data[i] = avg;     // R
+          data[i + 1] = avg; // G
+          data[i + 2] = avg; // B
+          // A is unchanged
+        }
+        ctx.putImageData(imageData, 0, 0);
+
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject("Blob conversion failed");
+        }, "image/jpeg", 0.8);
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  };
 
   const handleAnalyze = async () => {
-    if (!input.trim() || loading) return;
+    if ((!input.trim() && !image) || loading) return;
 
     const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
       content: input.trim(),
+      image: imagePreview || undefined,
     };
 
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
+    setImage(null);
+    setImagePreview(null);
     setLoading(true);
+    setLoadingText("Thinking...");
 
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg.content }),
-      });
+      let data;
 
-      const data = await res.json();
+      if (image) {
+        setLoadingText("Optimizing image...");
+        const processedBlob = await processImage(image);
+
+        const formData = new FormData();
+        formData.append("image", processedBlob, "image.jpg");
+
+        setLoadingText("Reading text...");
+        const res = await fetch("/api/analyze-image", {
+          method: "POST",
+          body: formData,
+        });
+
+        setLoadingText("Decyphering slang...");
+        data = await res.json();
+      } else {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: userMsg.content }),
+        });
+        data = await res.json();
+      }
+
+      // Update user message with extracted text if available
+      if (data.extractedText) {
+        setMessages(prev => prev.map(m => m.id === userMsg.id ? { ...m, extractedText: data.extractedText } : m));
+      }
 
       let aiContent = "";
       let parsedResult: ParsedResult | undefined = undefined;
@@ -183,6 +306,26 @@ export default function Home() {
                     : "rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 w-full"
                 )}>
 
+                  {/* User Image */}
+                  {msg.image && (
+                    <div className="mb-3 rounded-lg overflow-hidden border border-white/10">
+                      <img src={msg.image} alt="User upload" className="w-auto h-auto max-h-48 max-w-full object-contain bg-black/50" />
+                    </div>
+                  )}
+
+                  {/* Extracted Text Indicator */}
+                  {msg.extractedText && (
+                    <div className="mb-3 pl-3 border-l-2 border-violet-500/50">
+                      <div className="flex items-center gap-2 mb-1">
+                        <ScanText className="w-3 h-3 text-violet-400" />
+                        <span className="text-[10px] uppercase tracking-widest text-violet-300/70 font-semibold">Detected Text</span>
+                      </div>
+                      <p className="text-xs text-neutral-400 font-mono italic leading-relaxed line-clamp-4 hover:line-clamp-none transition-all">
+                        {msg.extractedText}
+                      </p>
+                    </div>
+                  )}
+
                   {/* AI Icon */}
                   {msg.role === "ai" && (
                     <div className="flex items-center gap-2 mb-4">
@@ -265,10 +408,13 @@ export default function Home() {
               animate={{ opacity: 1 }}
               className="flex justify-start w-full pl-1"
             >
-              <div className="flex items-center gap-1.5 h-8">
-                <div className="w-1.5 h-1.5 bg-neutral-600 rounded-full animate-pulse" />
-                <div className="w-1.5 h-1.5 bg-neutral-600 rounded-full animate-pulse delay-75" />
-                <div className="w-1.5 h-1.5 bg-neutral-600 rounded-full animate-pulse delay-150" />
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 h-8">
+                  <div className="w-1.5 h-1.5 bg-neutral-600 rounded-full animate-pulse" />
+                  <div className="w-1.5 h-1.5 bg-neutral-600 rounded-full animate-pulse delay-75" />
+                  <div className="w-1.5 h-1.5 bg-neutral-600 rounded-full animate-pulse delay-150" />
+                </div>
+                <span className="text-xs font-mono text-neutral-500 animate-pulse">{loadingText}</span>
               </div>
             </motion.div>
           )}
@@ -284,22 +430,56 @@ export default function Home() {
             <div className="absolute inset-0 bg-[#050505]/50 backdrop-blur-xl rounded-full -m-2 opacity-90" />
             <div className="relative flex items-center bg-[#18181b]/80 backdrop-blur-md rounded-full border border-white/10 p-2 pr-3 focus-within:border-violet-500/50 focus-within:ring-4 focus-within:ring-violet-500/10 transition-all duration-300 shadow-2xl shadow-violet-900/20">
               <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageSelect(file);
+                }}
+              />
+
+              {imagePreview && (
+                <div className="absolute bottom-full left-0 mb-3 ml-2">
+                  <div className="relative group">
+                    <img src={imagePreview} alt="Preview" className="h-16 w-auto rounded-lg border border-white/10 shadow-xl bg-neutral-900 object-cover" />
+                    <button onClick={removeImage} className="absolute -top-1.5 -right-1.5 bg-neutral-800 text-white rounded-full p-0.5 border border-white/20 shadow-sm hover:bg-neutral-700 transition-colors">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <input
                 ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Type a slang phrase (e.g. 'no cap', 'bet')..."
+                placeholder={image ? "Add a caption (optional)..." : "Type a slang phrase or paste an image..."}
                 className="flex-1 bg-transparent border-none outline-none text-white placeholder-neutral-500 h-[44px] px-4 text-[15px]"
                 disabled={loading}
                 autoFocus
+                onPaste={(e) => {
+                  // Let the global listener handle it, or preventDefault if preferred
+                }}
               />
+
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 text-neutral-400 hover:text-white transition-colors hover:bg-white/5 rounded-full mr-1"
+                title="Upload Image"
+              >
+                <Paperclip className="w-4 h-4" />
+              </button>
+
               <button
                 onClick={handleAnalyze}
-                disabled={!input || loading}
+                disabled={(!input && !image) || loading}
                 className={clsx(
-                  "ml-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200",
-                  input.trim() && !loading
+                  "ml-1 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200",
+                  (input.trim() || image) && !loading
                     ? "bg-white text-black hover:scale-110 active:scale-95 shadow-lg shadow-white/20"
                     : "bg-neutral-800 text-neutral-600 cursor-not-allowed"
                 )}
