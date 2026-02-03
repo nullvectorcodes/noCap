@@ -1,5 +1,7 @@
 # Node
+.next/
 node_modules/
+.env
 dist/
 build/
 .env
