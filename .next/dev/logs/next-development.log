@@ -1,18 +1,19 @@
-[00:00:00.578] Server  LOG     ✓ Ready in 408ms
-[00:00:16.243] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
-[00:00:16.273] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:01:07.228] Server  LOG     ✓ Compiled in 34ms
-[00:03:11.652] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
-[00:03:11.693] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:03:23.272] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: Hindi
-[00:03:23.287] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:04:03.500] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: Hindi
-[00:04:03.529] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:04:30.606] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
-[00:04:30.618] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:04:31.211] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
-[00:04:31.225] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
-[00:05:16.626] Server  LOG     ✓ Compiled in 65ms
-[00:05:41.595] Browser ERROR   Failed to read clipboard {"column":100,"line":1080}
-[00:05:52.103] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
-[00:05:52.134] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:00:01.169] Server  LOG     ✓ Ready in 999ms
+[00:00:03.451] Server  ERROR   ⨯ Error: You must provide a redirect URI in the AuthKit middleware or in the environment variables.
+[00:00:03.682] Browser ERROR   uncaughtError: Error: You must provide a redirect URI in the AuthKit middleware or in the environment variables.
+[00:00:04.093] Server  ERROR   ⨯ Error: No address provided to ConvexReactClient.
+If trying to deploy to production, make sure to follow all the instructions found at https://docs.convex.dev/production/hosting/
+If running locally, make sure to run `convex dev` and ensure the .env.local file is populated.
+[00:00:06.128] Server  ERROR   ⨯ Error: You must provide a redirect URI in the AuthKit middleware or in the environment variables.
+[00:00:06.241] Server  ERROR   ⨯ Error: No address provided to ConvexReactClient.
+If trying to deploy to production, make sure to follow all the instructions found at https://docs.convex.dev/production/hosting/
+If running locally, make sure to run `convex dev` and ensure the .env.local file is populated.
+[00:00:06.277] Browser ERROR   uncaughtError: Error: You must provide a redirect URI in the AuthKit middleware or in the environment variables.
+[00:01:17.053] Server  ERROR   ⨯ Error: You must provide a redirect URI in the AuthKit middleware or in the environment variables.
+[00:01:17.167] Server  ERROR   ⨯ Error: No address provided to ConvexReactClient.
+If trying to deploy to production, make sure to follow all the instructions found at https://docs.convex.dev/production/hosting/
+If running locally, make sure to run `convex dev` and ensure the .env.local file is populated.
+[00:01:17.239] Browser ERROR   uncaughtError: Error: You must provide a redirect URI in the AuthKit middleware or in the environment variables.
+[00:02:55.038] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:02:55.135] Server  LOG       Reload env: .env.local
+[00:02:55.479] Server  LOG     ✓ Compiled in 444ms
