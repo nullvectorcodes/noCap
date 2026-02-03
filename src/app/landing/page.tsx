@@ -408,6 +408,12 @@ export default function LandingPage() {
             <section className="relative h-[120vh] bg-[#050505] flex items-center justify-center">
                 <NarrativeController />
             </section>
+
+            {/* SECTION 3: INFO CARDS */}
+            <div className="h-24 md:h-32" />
+            <section className="relative h-[120vh] bg-[#050505] flex items-center justify-center">
+                <InfoCardsSection />
+            </section>
         </div>
     );
 }
@@ -428,6 +434,7 @@ export const NarrativeController = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [active, setActive] = useState(false);
     const [step, setStep] = useState(0);
+    const cooldown = useRef(false);
 
     // Detect when first line is centered
     useEffect(() => {
@@ -438,6 +445,16 @@ export const NarrativeController = () => {
 
             // Activation zone: when the container covers the center
             if (active) return; // Already active
+
+            // COOLDOWN LOGIC: If we just finished, don't re-activate until we leave the zone
+            if (cooldown.current) {
+                // If user scrolls far away (e.g. > 200px from center), reset cooldown
+                if (Math.abs(rect.top - center) > 200) {
+                    cooldown.current = false;
+                }
+                return;
+            }
+
             if (rect.top <= center && rect.bottom >= center) {
                 setActive(true);
             }
@@ -472,6 +489,7 @@ export const NarrativeController = () => {
                     onComplete={() => {
                         setActive(false);
                         document.body.style.overflow = "";
+                        cooldown.current = true; // Enable cooldown to allow escape
                     }}
                 />
             )}
@@ -561,6 +579,170 @@ const NarrativeScroll = ({
                         key={i}
                         className={`w-2 h-2 rounded-full transition-colors duration-300 ${i === step ? "bg-[#bd00ff]" : "bg-white/20"}`}
                     />
+                ))}
+            </div>
+        </div>
+    );
+};
+
+// --- SECTION 3: INFO CARDS ---
+
+const cards = [
+    {
+        title: "Understand the Speak.",
+        description: "Gen Z slang changes daily. noCap keeps you fluent without trying too hard.",
+        color: "from-blue-500 to-cyan-400"
+    },
+    {
+        title: "Context is King.",
+        description: "It's not just definitions. It's the vibe, the sarcasm, and the hidden layers.",
+        color: "from-purple-500 to-pink-500"
+    },
+    {
+        title: "Bridge the Gap.",
+        description: "Connect with younger audiences, family members, or colleagues instantly.",
+        color: "from-amber-400 to-orange-500"
+    }
+];
+
+const InfoCardsSection = () => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [active, setActive] = useState(false);
+    const [step, setStep] = useState(0);
+    const cooldown = useRef(false);
+
+    useEffect(() => {
+        const onScroll = () => {
+            if (!containerRef.current) return;
+            const rect = containerRef.current.getBoundingClientRect();
+            const center = window.innerHeight / 2;
+
+            if (active) return;
+
+            if (cooldown.current) {
+                if (Math.abs(rect.top - center) > 200) {
+                    cooldown.current = false;
+                }
+                return;
+            }
+
+            if (rect.top <= center && rect.bottom >= center) {
+                setActive(true);
+            }
+        };
+
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+    }, [active]);
+
+    useEffect(() => {
+        if (active) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+    }, [active]);
+
+    return (
+        <div
+            ref={containerRef}
+            className="relative h-[60vh] w-full max-w-5xl flex items-center justify-center"
+        >
+            {!active && <div className="absolute inset-0" />}
+
+            {active && (
+                <InfoCardStack
+                    step={step}
+                    setStep={setStep}
+                    onComplete={() => {
+                        setActive(false);
+                        document.body.style.overflow = "";
+                        cooldown.current = true;
+                    }}
+                />
+            )}
+        </div>
+    );
+};
+
+const InfoCardStack = ({
+    step,
+    setStep,
+    onComplete
+}: {
+    step: number;
+    setStep: (n: number | ((prev: number) => number)) => void;
+    onComplete: () => void;
+}) => {
+    const lastScrollTime = useRef(0);
+
+    useEffect(() => {
+        const onWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            const now = Date.now();
+            if (now - lastScrollTime.current < 800) return;
+
+            if (Math.abs(e.deltaY) < 10) return;
+
+            if (e.deltaY > 0) {
+                if (step < cards.length - 1) {
+                    setStep((s) => s + 1);
+                    lastScrollTime.current = now;
+                } else {
+                    onComplete();
+                }
+            } else {
+                if (step > 0) {
+                    setStep((s) => s - 1);
+                    lastScrollTime.current = now;
+                } else {
+                    onComplete();
+                }
+            }
+        };
+
+        window.addEventListener("wheel", onWheel, { passive: false });
+        return () => window.removeEventListener("wheel", onWheel);
+    }, [step, onComplete, setStep]);
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
+            <div className="relative w-full max-w-md h-[60vh] perspective-1000">
+                {cards.map((card, i) => (
+                    <motion.div
+                        key={i}
+                        initial={{ y: "100vh" }}
+                        animate={{
+                            y: i <= step ? 0 : "100vh",
+                            scale: i < step ? 0.9 + (i * 0.02) : 1,
+                            opacity: i < step ? 0.5 : 1,
+                            zIndex: i
+                        }}
+                        transition={{
+                            duration: 0.6,
+                            ease: [0.16, 1, 0.3, 1] // Custom snappy bezier
+                        }}
+                        className="absolute inset-0 rounded-3xl overflow-hidden bg-[#0a0a0a] border border-white/10 flex flex-col p-8 shadow-2xl"
+                    >
+                        {/* Card Content */}
+                        <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${card.color}`} />
+
+                        <div className="mt-8 mb-4">
+                            <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${card.color} opacity-20 mb-4`} />
+                        </div>
+
+                        <h3 className="text-4xl font-bold text-white mb-4 tracking-tight">
+                            {card.title}
+                        </h3>
+                        <p className="text-xl text-white/60 leading-relaxed">
+                            {card.description}
+                        </p>
+
+                        <div className="mt-auto flex justify-between items-center text-white/20 text-sm font-mono uppercase">
+                            <span>0{i + 1}</span>
+                            <span>noCap</span>
+                        </div>
+                    </motion.div>
                 ))}
             </div>
         </div>
