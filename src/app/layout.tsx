@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "Decode modern slang with AI. Powered by noCap.",
 };
 
+import ConvexClientProvider from "./ConvexClientProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,9 +30,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-black text-white selection:bg-purple-500/30`}
         suppressHydrationWarning
       >
-        <div className="relative z-10 h-full w-full">
-          {children}
-        </div>
+        <ConvexClientProvider>
+          <div className="relative z-10 h-full w-full">
+            {children}
+          </div>
+        </ConvexClientProvider>
         {/* Background Gradients */}
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/20 rounded-full blur-[120px]" />

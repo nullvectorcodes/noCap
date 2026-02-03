@@ -1,0 +1,294 @@
+{
+  "node": {
+    "402507932f50b72a10fce923d6513979b290406277": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 76008,
+          "async": false,
+          "exportedName": "refreshSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/history/page": {
+          "moduleId": 78466,
+          "async": false,
+          "exportedName": "refreshSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/page": {
+          "moduleId": 12080,
+          "async": false,
+          "exportedName": "refreshSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/settings/page": {
+          "moduleId": 28855,
+          "async": false,
+          "exportedName": "refreshSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc",
+        "app/history/page": "rsc",
+        "app/page": "rsc",
+        "app/settings/page": "rsc"
+      },
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js",
+      "exportedName": "refreshSession"
+    },
+    "403198522f8c98a433baafd92ff186cec0ce3cdf8f": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 76008,
+          "async": false,
+          "exportedName": "getTokenClaims",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/history/page": {
+          "moduleId": 78466,
+          "async": false,
+          "exportedName": "getTokenClaims",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/page": {
+          "moduleId": 12080,
+          "async": false,
+          "exportedName": "getTokenClaims",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/settings/page": {
+          "moduleId": 28855,
+          "async": false,
+          "exportedName": "getTokenClaims",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc",
+        "app/history/page": "rsc",
+        "app/page": "rsc",
+        "app/settings/page": "rsc"
+      },
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js",
+      "exportedName": "getTokenClaims"
+    },
+    "404d2db90e94b9fa54f81c0eb51a227af2099fb67d": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 76008,
+          "async": false,
+          "exportedName": "getSessionFromCookie",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/history/page": {
+          "moduleId": 78466,
+          "async": false,
+          "exportedName": "getSessionFromCookie",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/page": {
+          "moduleId": 12080,
+          "async": false,
+          "exportedName": "getSessionFromCookie",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/settings/page": {
+          "moduleId": 28855,
+          "async": false,
+          "exportedName": "getSessionFromCookie",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc",
+        "app/history/page": "rsc",
+        "app/page": "rsc",
+        "app/settings/page": "rsc"
+      },
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js",
+      "exportedName": "getSessionFromCookie"
+    },
+    "408ea708d218a23e92323bec67c81614d8f7b0bb66": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 76008,
+          "async": false,
+          "exportedName": "withAuth",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/history/page": {
+          "moduleId": 78466,
+          "async": false,
+          "exportedName": "withAuth",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/page": {
+          "moduleId": 12080,
+          "async": false,
+          "exportedName": "withAuth",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/settings/page": {
+          "moduleId": 28855,
+          "async": false,
+          "exportedName": "withAuth",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc",
+        "app/history/page": "rsc",
+        "app/page": "rsc",
+        "app/settings/page": "rsc"
+      },
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js",
+      "exportedName": "withAuth"
+    },
+    "40bf1e5b842fc7d1b2c51f4ad69cf027f06cde645a": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 76008,
+          "async": false,
+          "exportedName": "encryptSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/history/page": {
+          "moduleId": 78466,
+          "async": false,
+          "exportedName": "encryptSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/page": {
+          "moduleId": 12080,
+          "async": false,
+          "exportedName": "encryptSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/settings/page": {
+          "moduleId": 28855,
+          "async": false,
+          "exportedName": "encryptSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc",
+        "app/history/page": "rsc",
+        "app/page": "rsc",
+        "app/settings/page": "rsc"
+      },
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js",
+      "exportedName": "encryptSession"
+    },
+    "60a7465197574ef657efa89fbc99d002a5e84a0e1c": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 76008,
+          "async": false,
+          "exportedName": "updateSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/history/page": {
+          "moduleId": 78466,
+          "async": false,
+          "exportedName": "updateSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/page": {
+          "moduleId": 12080,
+          "async": false,
+          "exportedName": "updateSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/settings/page": {
+          "moduleId": 28855,
+          "async": false,
+          "exportedName": "updateSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc",
+        "app/history/page": "rsc",
+        "app/page": "rsc",
+        "app/settings/page": "rsc"
+      },
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js",
+      "exportedName": "updateSession"
+    },
+    "60cc81b506cbdd6800609e607843ba56c4e83a2027": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 76008,
+          "async": false,
+          "exportedName": "saveSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/history/page": {
+          "moduleId": 78466,
+          "async": false,
+          "exportedName": "saveSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/page": {
+          "moduleId": 12080,
+          "async": false,
+          "exportedName": "saveSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/settings/page": {
+          "moduleId": 28855,
+          "async": false,
+          "exportedName": "saveSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc",
+        "app/history/page": "rsc",
+        "app/page": "rsc",
+        "app/settings/page": "rsc"
+      },
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js",
+      "exportedName": "saveSession"
+    },
+    "7e8958c6dfd0561c018183ad3d52897fce9eec6b61": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 76008,
+          "async": false,
+          "exportedName": "updateSessionMiddleware",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/history/page": {
+          "moduleId": 78466,
+          "async": false,
+          "exportedName": "updateSessionMiddleware",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/page": {
+          "moduleId": 12080,
+          "async": false,
+          "exportedName": "updateSessionMiddleware",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        },
+        "app/settings/page": {
+          "moduleId": 28855,
+          "async": false,
+          "exportedName": "updateSessionMiddleware",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc",
+        "app/history/page": "rsc",
+        "app/page": "rsc",
+        "app/settings/page": "rsc"
+      },
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js",
+      "exportedName": "updateSessionMiddleware"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "svU0KFhex5Huv2fA9IHcFmF/wNro1ePg/TPgPbAi5vA="
+}

@@ -1,0 +1,125 @@
+{
+  "node": {
+    "4027b44f4a01a21165ba0fee7e7fa584de0686e154": {
+      "workers": {
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getTokenClaims",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/page": "rsc"
+      },
+      "exportedName": "getTokenClaims",
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+    },
+    "402a48cf223990fc4399eb10a679f6d2d6d4b0555d": {
+      "workers": {
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getSessionFromCookie",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/page": "rsc"
+      },
+      "exportedName": "getSessionFromCookie",
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+    },
+    "4036d2f337294e70a23e4568f271b1ab80ed26196f": {
+      "workers": {
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "withAuth",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/page": "rsc"
+      },
+      "exportedName": "withAuth",
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+    },
+    "403e1a2e194b095cb6fef2f1ccef3b75a6e9c7549e": {
+      "workers": {
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "encryptSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/page": "rsc"
+      },
+      "exportedName": "encryptSession",
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+    },
+    "407faa02d55610da13b582bbfa1a8a624f22c5da5c": {
+      "workers": {
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "refreshSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/page": "rsc"
+      },
+      "exportedName": "refreshSession",
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+    },
+    "60065fed8bf58cf9361dda41571234b5f24f7218c6": {
+      "workers": {
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/page": "rsc"
+      },
+      "exportedName": "updateSession",
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+    },
+    "605403c72b7e93dfd9841cd8f26b190c6b69031b1f": {
+      "workers": {
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "saveSession",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/page": "rsc"
+      },
+      "exportedName": "saveSession",
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+    },
+    "7e0509aea758ad55edf46790f699e0d2ef5c7633d6": {
+      "workers": {
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateSessionMiddleware",
+          "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+        }
+      },
+      "layer": {
+        "app/page": "rsc"
+      },
+      "exportedName": "updateSessionMiddleware",
+      "filename": "node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js"
+    }
+  },
+  "edge": {}
+}

@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 112, "column": 0}, "map": {"version":3,"sources":["file:///Users/mohammadsaalim/projects/src/app/api/auth/login/route.ts"],"sourcesContent":["import { getSignInUrl } from '@workos-inc/authkit-nextjs';\nimport { redirect } from 'next/navigation';\nimport { NextRequest } from 'next/server';\n\n// Standard App Router Route Handler\nexport async function GET(request: NextRequest) {\n    const redirectUri = process.env.WORKOS_REDIRECT_URI;\n\n    if (!redirectUri) {\n        throw new Error('WORKOS_REDIRECT_URI is not set in environment variables');\n    }\n\n    // WorkOS getSignInUrl correctly generates the AuthKit URL\n    const url = await getSignInUrl({\n        redirectUri,\n        state: JSON.stringify({ intent: 'admin' }),\n    });\n\n    // Next.js App Router redirect()\n    redirect(url);\n}\n"],"names":[],"mappings":";;;;AAAA;AACA;AAAA;;;AAIO,eAAe,IAAI,OAAoB;IAC1C,MAAM,cAAc,QAAQ,GAAG,CAAC,mBAAmB;IAEnD,IAAI,CAAC,aAAa;QACd,MAAM,IAAI,MAAM;IACpB;IAEA,0DAA0D;IAC1D,MAAM,MAAM,MAAM,IAAA,6LAAY,EAAC;QAC3B;QACA,OAAO,KAAK,SAAS,CAAC;YAAE,QAAQ;QAAQ;IAC5C;IAEA,gCAAgC;IAChC,IAAA,mMAAQ,EAAC;AACb"}}]
+}

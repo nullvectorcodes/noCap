@@ -44,33 +44,46 @@ export async function analyzeText(text: string, targetLanguage: string = "Englis
     }
 
     // 2. Prepare Payload (Sanitized)
-    const systemPrompt = `You are noCap, a gen-z slang expert.
-You must analyze the user's message and output the result in ${targetLanguage}.
+    const systemPrompt = `🧠 SYSTEM PROMPT — noCap Slang Intelligence Engine
+You are noCap, a slang detection lexicon and Tone Engine.
+Your job is NOT to chat.
+Your job is to accurately detect tone and explain slang with zero hallucination.
 
-Your task:
-1. Analyze the user's message.
-2. "sentence_meaning": Provide a VIBE-BASED translation in ${targetLanguage}. Capture the emotion and intent.
-3. "terms": Identify specific slang phrases. 
-   - CRITICAL: Treat multi-word slang as SINGLE units (e.g. "Oh hell naw").
-   - Meaning: Explain the usage/context purely in ${targetLanguage}.
-   - Example: A natural usage example (keep the slang in English, but you can translate the rest of the sentence to ${targetLanguage} if appropriate).
-4. Output STRICTLY a valid JSON object.
+🔒 TONE TAXONOMY (LOCKED)
+You MUST choose exactly ONE tone from this list:
+Neutral, Excited, Happy, Angry, Frustrated, Disappointed, Sarcastic, Playful, Sad, Confident
 
-Output Language: ${targetLanguage}
-Output Language: ${targetLanguage}
-Output Language: ${targetLanguage}
+❗ If unsure, default to Neutral.
 
-Structure:
+🔒 CORE PRINCIPLES (NON-NEGOTIABLE)
+- The database is the single source of truth for slang.
+- Sentence emotion \u2260 slang meaning.
+- If unsure, reject — never guess.
+
+Output ONLY valid JSON matching the structure below.
+
+🧪 REQUIRED OUTPUT STRUCTURE
 {
-  "sentence_meaning": "The overall translation/vibe written in ${targetLanguage}.",
-  "terms": [
+  "tone": "One of the locked tones",
+  "sentenceIntent": "A short, one-sentence analysis of the emotional tone.",
+  "slang": [
     {
-      "term": "phrase or word",
-      "meaning": "definition written in ${targetLanguage}",
-      "example": "usage example"
+      "term": "detected term",
+      "meaning": "definition (15 words max)",
+      "example": "usage example (10 words max)",
+      "source": "ai_unverified"
     }
   ]
-}`;
+}
+
+If no valid slang exists:
+{
+  "tone": "One of the locked tones",
+  "sentenceIntent": "Analysis of tone.",
+  "slang": []
+}
+
+Output Language: ${targetLanguage}`;
 
     const payload = {
         model: modelId,
@@ -126,4 +139,117 @@ Structure:
     }
 
     return reply;
+}
+
+export async function generateSmartReplies(sentence: string, intent: string, slangTerms: any[] = [], tone: string = "Neutral") {
+    let modelId = process.env.LM_STUDIO_MODEL;
+
+    if (!sentence || !intent) {
+        console.warn("[Smart Reply] Missing required inputs");
+        return JSON.stringify({ suggestedReplies: [] });
+    }
+
+    if (!modelId) {
+        const caps = await detectModelCapabilities(CONFIG.baseUrl);
+        modelId = caps?.id || "local-model";
+    }
+
+    const safeSlang = Array.isArray(slangTerms) ? slangTerms : [];
+    const slangContext = safeSlang.length > 0
+        ? safeSlang.map(t => `${t.term}`).join(", ")
+        : "None";
+
+    // MERGED PROMPT: System instructions + User context in one (Friendly/Safe Persona)
+    const mergedPrompt = `You generate short, natural reply suggestions someone would actually send in chat.
+
+CONTEXT:
+Original Message: "${sentence}"
+Detected Tone: "${tone}"
+Intent: "${intent}"
+Slang Used: ${slangContext}
+
+Your replies must be:
+- slang-aware
+- casual
+- socially appropriate
+- non-confrontational by default
+
+DO NOT sound rude, toxic, or aggressive unless the tone is explicitly Angry.
+
+STYLE RULES:
+- lowercase preferred
+- slang is encouraged but keep it friendly
+- relaxed, conversational tone
+- something a user would feel comfortable sending
+
+STRICT OUTPUT RULES:
+- Output ONLY valid JSON
+- No explanations
+- No markdown
+- No extra text
+
+JSON format:
+{
+  "suggestedReplies": ["reply one", "reply two", "reply three"]
+}
+
+REPLY CONSTRAINTS:
+- 3 to 5 replies
+- Max 4 words each
+- No direct insults
+- No blaming ("you did this")
+- No commands
+- No excessive sarcasm
+
+TONE ALIGNMENT:
+- Disappointed -> calm agreement, mild slang
+- Frustrated -> empathetic, restrained slang
+- Excited -> hype slang
+- Playful -> light banter only
+- Neutral -> casual acknowledgements
+- Angry -> assertive but not abusive
+
+If unsure, choose the safest natural reply.
+
+Generate the JSON now.`;
+
+    const payload = {
+        model: modelId,
+        messages: [
+            // ONLY User role supported by this model
+            { role: "user", content: mergedPrompt }
+        ],
+        temperature: 0.7,
+        stream: false
+    };
+
+    try {
+        const response = await fetch(`${CONFIG.baseUrl}/chat/completions`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            signal: AbortSignal.timeout(CONFIG.timeoutMs)
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            console.error(`[Smart Reply Error] ${response.status} ${response.statusText}`, errorBody);
+            return JSON.stringify({ suggestedReplies: [] });
+        }
+
+        const data = await response.json();
+        let rawContent = data.choices?.[0]?.message?.content || "{}";
+
+        // Robust cleanup to handle markdown blocks e.g. ```json ... ```
+        const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            rawContent = jsonMatch[0];
+        }
+
+        return rawContent;
+
+    } catch (error) {
+        console.error("[Smart Reply Exception]", error);
+        return JSON.stringify({ suggestedReplies: [] });
+    }
 }
