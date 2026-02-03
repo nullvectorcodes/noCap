@@ -402,7 +402,123 @@ export default function LandingPage() {
                     </motion.div>
                 </div>
 
-            </main >
+            </main>
+
+            {/* SECTION 2: SCROLL-BASED TEXT ANIMATION */}
+            <section className="relative bg-[#050505]">
+                {/* Background Ambient Glow */}
+                <div className="fixed top-0 left-0 right-0 h-screen pointer-events-none z-0">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#bd00ff] opacity-5 blur-[120px]" />
+                </div>
+
+                {/* Sticky Container for Stacked Text */}
+                <div className="sticky top-0 h-screen flex items-center justify-center pointer-events-none z-10">
+                    <div className="relative w-full max-w-5xl px-6">
+                        <div className="flex flex-col items-center gap-4">
+                            <ScrollTextStack />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Scroll Spacers - Each text gets scroll space */}
+                <div className="h-[100vh]" />
+                <div className="h-[100vh]" />
+                <div className="h-[100vh]" />
+                <div className="h-[100vh]" />
+            </section>
         </div >
     );
 }
+
+// Scroll Text Stack Component
+const ScrollTextStack = () => {
+    const texts = [
+        "The internet moves fast.",
+        "Language changes even faster.",
+        "Slang. Screenshots. Context you don't have.",
+        "That's the gap.\nnoCap closes it."
+    ];
+
+    const { scrollY } = useScroll();
+
+    return (
+        <>
+            {texts.map((text, index) => (
+                <ScrollTextLine
+                    key={index}
+                    text={text}
+                    index={index}
+                    totalLines={texts.length}
+                    scrollY={scrollY}
+                />
+            ))}
+        </>
+    );
+};
+
+const ScrollTextLine = ({
+    text,
+    index,
+    totalLines,
+    scrollY
+}: {
+    text: string;
+    index: number;
+    totalLines: number;
+    scrollY: any;
+}) => {
+    // Each line gets its own scroll trigger
+    // Line appears from bottom, reaches its stacked position, and stays there
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 1000;
+
+    // Scroll positions for this line
+    const startScroll = vh * (1 + index * 0.8);      // When line starts appearing
+    const arrivedScroll = vh * (1.4 + index * 0.8);  // When line reaches its position
+    const settledScroll = vh * (1.6 + index * 0.8);  // When line is settled
+
+    // Line spacing - each line has a fixed vertical position in the stack
+    const lineHeight = 100; // pixels between lines
+    const totalHeight = (totalLines - 1) * lineHeight / 2;
+    const targetY = (index * lineHeight) - totalHeight; // Center the stack
+
+    // Opacity: fade in and stay visible
+    const opacity = useTransform(
+        scrollY,
+        [startScroll, arrivedScroll, settledScroll, settledScroll + 2000],
+        [0, 1, 1, 1]
+    );
+
+    // Y position: come from bottom, reach stack position, stay there
+    const y = useTransform(
+        scrollY,
+        [startScroll, arrivedScroll, settledScroll],
+        [150, targetY, targetY]
+    );
+
+    // Scale: subtle entrance effect
+    const scale = useTransform(
+        scrollY,
+        [startScroll, arrivedScroll],
+        [0.95, 1]
+    );
+
+    return (
+        <motion.div
+            style={{
+                opacity,
+                y,
+                scale,
+                position: 'absolute',
+                left: '50%',
+                top: '50%',
+                translateX: '-50%',
+                translateY: '-50%',
+            }}
+            className="will-change-transform"
+        >
+            <p className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight text-white text-center leading-tight whitespace-pre-line px-6">
+                {text}
+            </p>
+        </motion.div>
+    );
+};
