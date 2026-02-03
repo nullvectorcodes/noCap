@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { ArrowLeft, Plus, Trash2, Send, Check, Link as LinkIcon, Globe, Quote, BookOpen, Sparkles, Languages, Info, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 const Confetti = () => {
     return (
@@ -50,6 +52,7 @@ export default function SubmitSlang() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
 
+    const submitSlang = useMutation(api.slang.submitSlang);
     const formRef = useRef<HTMLFormElement>(null);
 
     const handleExampleChange = (index: number, value: string) => {
@@ -95,24 +98,35 @@ export default function SubmitSlang() {
         setLoading(true);
 
         // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        try {
+            await submitSlang({
+                term,
+                meaning,
+                examples: examples.filter(e => e.trim() !== ""),
+                origin: references.length > 0 ? references.join("; ") : undefined,
+                socialCircle: languageGroup,
+            });
 
-        setLoading(false);
-        setSuccess(true);
+            setLoading(false);
+            setSuccess(true);
 
-        // Scroll to success message
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Scroll to success message
+            window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        // Reset after delay
-        setTimeout(() => {
-            setSuccess(false);
-            setTerm("");
-            setPronunciation("");
-            setLanguageGroup("");
-            setMeaning("");
-            setExamples(["", "", ""]);
-            setReferences([""]);
-        }, 6000);
+            // Reset after delay
+            setTimeout(() => {
+                setSuccess(false);
+                setTerm("");
+                setPronunciation("");
+                setLanguageGroup("");
+                setMeaning("");
+                setExamples(["", "", ""]);
+                setReferences([""]);
+            }, 6000);
+        } catch (error) {
+            console.error("Failed to submit slang:", error);
+            setLoading(false);
+        }
     };
 
     return (
