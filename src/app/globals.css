@@ -6,15 +6,17 @@
 }
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #050505;
+  --foreground: #ffffff;
   
-  /* Premium Colors */
-  --accent-primary: #8b5cf6; /* Violet-500 */
-  --accent-secondary: #ec4899; /* Pink-500 */
-  --surface-1: #171717; /* Neutral-900 */
-  --surface-2: #262626; /* Neutral-800 */
-  --border-color: #404040; /* Neutral-700 */
+  /* Neon Theme */
+  --neon-purple: #bd00ff;
+  --neon-purple-glow: 0 0 10px #bd00ff, 0 0 20px #bd00ff, 0 0 40px #bd00ff;
+  --neon-text-glow: 0 0 5px #bd00ff, 0 0 10px #bd00ff;
+  
+  --surface-1: #0a0a0a;
+  --surface-2: #121212;
+  --border-color: #333333;
 }
 
 body {
