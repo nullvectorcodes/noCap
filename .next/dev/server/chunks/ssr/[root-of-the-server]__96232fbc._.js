@@ -25,7 +25,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$convex$2f$di
 ;
 // Convex Deployment URL (ends in .convex.cloud) is required for mutations/queries
 // Convex Site URL (ends in .convex.site) is only for custom HTTP actions
-const rawUrl = ("TURBOPACK compile-time value", "https://tidy-alligator-361.convex.cloud") || process.env.CONVEX_DEPLOYMENT_URL || process.env.CONVEX_SITE_URL;
+const rawUrl = ("TURBOPACK compile-time value", "https://diligent-monitor-793.convex.cloud") || process.env.CONVEX_DEPLOYMENT_URL || process.env.CONVEX_SITE_URL;
 if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
 ;
 // Auto-correct .site to .cloud if using for mutations

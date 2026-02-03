@@ -20,5 +20,5 @@ export default defineSchema({
         socialCircle: v.optional(v.string()), // e.g. Gen-Alpha
         status: v.string(), // "pending" | "approved" | "rejected"
         createdAt: v.number(),
-    }),
+    }).index("by_term", ["term"]),
 });

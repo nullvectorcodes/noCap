@@ -1,19 +1,20 @@
-[00:00:01.169] Server  LOG     ✓ Ready in 999ms
-[00:00:03.451] Server  ERROR   ⨯ Error: You must provide a redirect URI in the AuthKit middleware or in the environment variables.
-[00:00:03.682] Browser ERROR   uncaughtError: Error: You must provide a redirect URI in the AuthKit middleware or in the environment variables.
-[00:00:04.093] Server  ERROR   ⨯ Error: No address provided to ConvexReactClient.
-If trying to deploy to production, make sure to follow all the instructions found at https://docs.convex.dev/production/hosting/
-If running locally, make sure to run `convex dev` and ensure the .env.local file is populated.
-[00:00:06.128] Server  ERROR   ⨯ Error: You must provide a redirect URI in the AuthKit middleware or in the environment variables.
-[00:00:06.241] Server  ERROR   ⨯ Error: No address provided to ConvexReactClient.
-If trying to deploy to production, make sure to follow all the instructions found at https://docs.convex.dev/production/hosting/
-If running locally, make sure to run `convex dev` and ensure the .env.local file is populated.
-[00:00:06.277] Browser ERROR   uncaughtError: Error: You must provide a redirect URI in the AuthKit middleware or in the environment variables.
-[00:01:17.053] Server  ERROR   ⨯ Error: You must provide a redirect URI in the AuthKit middleware or in the environment variables.
-[00:01:17.167] Server  ERROR   ⨯ Error: No address provided to ConvexReactClient.
-If trying to deploy to production, make sure to follow all the instructions found at https://docs.convex.dev/production/hosting/
-If running locally, make sure to run `convex dev` and ensure the .env.local file is populated.
-[00:01:17.239] Browser ERROR   uncaughtError: Error: You must provide a redirect URI in the AuthKit middleware or in the environment variables.
-[00:02:55.038] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:02:55.135] Server  LOG       Reload env: .env.local
-[00:02:55.479] Server  LOG     ✓ Compiled in 444ms
+[00:00:00.462] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:00.512] Server  LOG     ✓ Ready in 358ms
+[00:00:02.140] Server  LOG     [Cache Miss] No DB match for: ping. Calling LLM...
+[00:00:02.141] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
+[00:00:02.157] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:00:08.045] Server  LOG     [Cache Miss] No DB match for: you have, have rizz, rizz man, you, have, rizz, man. Calling LLM...
+[00:00:08.045] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
+[00:00:08.063] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:00:32.683] Server  LOG     [Cache Miss] No DB match for: kya baat, baat kar, kar raha, raha hai, hai bro, kya, baat, kar, raha, hai, bro. Calling LLM...
+[00:00:32.684] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
+[00:00:32.702] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:00:46.017] Server  LOG     [Cache Miss] No DB match for: she was, was mid, mid af, she, was, mid, af. Calling LLM...
+[00:00:46.018] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
+[00:00:46.036] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:01:14.804] Server  LOG     [Cache Miss] No DB match for: bakchodi kam, kam kar, kar bsdk, bakchodi, kam, kar, bsdk. Calling LLM...
+[00:01:14.804] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
+[00:01:14.819] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...
+[00:01:43.297] Server  LOG     [Cache Miss] No DB match for: ping. Calling LLM...
+[00:01:43.298] Server  LOG     [Request] Sending to http://127.0.0.1:1234/v1/chat/completions with model mistral-7b-instruct | Language: English
+[00:01:43.315] Server  WARN    [First Attempt Failed] 400. Retrying with legacy completion endpoint...

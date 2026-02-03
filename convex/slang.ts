@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const submitSlang = mutation({
@@ -19,5 +19,18 @@ export const submitSlang = mutation({
             createdAt: Date.now(),
             status: "pending",
         });
+    },
+});
+
+export const getSlang = query({
+    args: { term: v.string() },
+    handler: async (ctx, args) => {
+        return await ctx.db
+            .query("slang")
+            .withIndex("by_term", q =>
+                q.eq("term", args.term.toLowerCase())
+            )
+            .filter(q => q.eq(q.field("status"), "approved"))
+            .first();
     },
 });
