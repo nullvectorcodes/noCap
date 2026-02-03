@@ -14,6 +14,22 @@ export default function LandingPage() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-900/10 rounded-full blur-[120px]" />
       </div>
 
+      {/* Top Navigation */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.8 }}
+        className="fixed top-0 right-0 p-8 z-50"
+      >
+        <Link
+          href="/admin"
+          className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/[0.08] text-neutral-500 hover:text-white hover:bg-white/[0.07] hover:border-white/20 transition-all backdrop-blur-md"
+        >
+          <div className="w-1.5 h-1.5 rounded-full bg-neutral-700 group-hover:bg-violet-500 transition-colors" />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Admin Login</span>
+        </Link>
+      </motion.div>
+
       <div className="z-10 flex flex-col items-center gap-12 w-full max-w-4xl px-6">
 
         {/* Hero Text */}
