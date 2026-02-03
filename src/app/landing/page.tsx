@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { motion, useScroll, useTransform, AnimatePresence, useSpring } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence, useSpring, useMotionValueEvent } from "framer-motion";
 import { X, Minus, Square, Send, RotateCcw, MessageSquare, Monitor, Smartphone, Globe, Cpu } from "lucide-react";
 
 // --- Components ---
@@ -405,120 +405,164 @@ export default function LandingPage() {
             </main>
 
             {/* SECTION 2: SCROLL-BASED TEXT ANIMATION */}
-            <section className="relative bg-[#050505]">
-                {/* Background Ambient Glow */}
-                <div className="fixed top-0 left-0 right-0 h-screen pointer-events-none z-0">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#bd00ff] opacity-5 blur-[120px]" />
-                </div>
-
-                {/* Sticky Container for Stacked Text */}
-                <div className="sticky top-0 h-screen flex items-center justify-center pointer-events-none z-10">
-                    <div className="relative w-full max-w-5xl px-6">
-                        <div className="flex flex-col items-center gap-4">
-                            <ScrollTextStack />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Scroll Spacers - Each text gets scroll space */}
-                <div className="h-[100vh]" />
-                <div className="h-[100vh]" />
-                <div className="h-[100vh]" />
-                <div className="h-[100vh]" />
+            <section className="relative h-[120vh] bg-[#050505] flex items-center justify-center">
+                <NarrativeController />
             </section>
-        </div >
+        </div>
     );
 }
 
-// Scroll Text Stack Component
-const ScrollTextStack = () => {
-    const texts = [
-        "The internet moves fast.",
-        "Language changes even faster.",
-        "Slang. Screenshots. Context you don't have.",
-        "That's the gap.\nnoCap closes it."
-    ];
+const lines = [
+    "The internet moves fast.",
+    "Language changes even faster.",
+    "Slang. Screenshots.",
+    "Context you don’t have.",
+    "Misunderstandings pile up.",
+    "That’s the gap.",
+    "noCap closes it."
+];
 
-    const { scrollY } = useScroll();
+const STEP = 110;
+
+export const NarrativeController = () => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [active, setActive] = useState(false);
+    const [step, setStep] = useState(0);
+
+    // Detect when first line is centered
+    useEffect(() => {
+        const onScroll = () => {
+            if (!containerRef.current) return;
+            const rect = containerRef.current.getBoundingClientRect();
+            const center = window.innerHeight / 2;
+
+            // Activation zone: when the container covers the center
+            if (active) return; // Already active
+            if (rect.top <= center && rect.bottom >= center) {
+                setActive(true);
+            }
+        };
+
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+    }, [active]);
+
+    // Lock page scroll when active
+    useEffect(() => {
+        if (active) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+    }, [active]);
 
     return (
-        <>
-            {texts.map((text, index) => (
-                <ScrollTextLine
-                    key={index}
-                    text={text}
-                    index={index}
-                    totalLines={texts.length}
-                    scrollY={scrollY}
+        <div
+            ref={containerRef}
+            className="relative h-[60vh] w-full max-w-5xl flex items-center justify-center"
+        >
+            {!active && (
+                <div className="absolute inset-0" />
+            )}
+
+            {active && (
+                <NarrativeScroll
+                    step={step}
+                    setStep={setStep}
+                    onComplete={() => {
+                        setActive(false);
+                        document.body.style.overflow = "";
+                    }}
                 />
-            ))}
-        </>
+            )}
+        </div>
     );
 };
 
-const ScrollTextLine = ({
-    text,
-    index,
-    totalLines,
-    scrollY
+const NarrativeScroll = ({
+    step,
+    setStep,
+    onComplete
 }: {
-    text: string;
-    index: number;
-    totalLines: number;
-    scrollY: any;
+    step: number;
+    setStep: (n: number | ((prev: number) => number)) => void;
+    onComplete: () => void;
 }) => {
-    // Each line gets its own scroll trigger
-    // Line appears from bottom, reaches its stacked position, and stays there
-    const vh = typeof window !== 'undefined' ? window.innerHeight : 1000;
+    const lastScrollTime = useRef(0);
 
-    // Scroll positions for this line
-    const startScroll = vh * (1 + index * 0.8);      // When line starts appearing
-    const arrivedScroll = vh * (1.4 + index * 0.8);  // When line reaches its position
-    const settledScroll = vh * (1.6 + index * 0.8);  // When line is settled
+    useEffect(() => {
+        const onWheel = (e: WheelEvent) => {
+            // Prevent default page scroll
+            e.preventDefault();
 
-    // Line spacing - each line has a fixed vertical position in the stack
-    const lineHeight = 100; // pixels between lines
-    const totalHeight = (totalLines - 1) * lineHeight / 2;
-    const targetY = (index * lineHeight) - totalHeight; // Center the stack
+            const now = Date.now();
+            if (now - lastScrollTime.current < 800) return; // Enforce 800ms delay between steps
 
-    // Opacity: fade in and stay visible
-    const opacity = useTransform(
-        scrollY,
-        [startScroll, arrivedScroll, settledScroll, settledScroll + 2000],
-        [0, 1, 1, 1]
-    );
+            if (Math.abs(e.deltaY) < 10) return;
 
-    // Y position: come from bottom, reach stack position, stay there
-    const y = useTransform(
-        scrollY,
-        [startScroll, arrivedScroll, settledScroll],
-        [150, targetY, targetY]
-    );
+            if (e.deltaY > 0) {
+                // Scrolling DOWN
+                if (step < lines.length - 1) {
+                    setStep((s) => s + 1);
+                    lastScrollTime.current = now;
+                } else {
+                    // Reached the end, unlock
+                    onComplete();
+                }
+            } else {
+                // Scrolling UP
+                if (step > 0) {
+                    setStep((s) => s - 1);
+                    lastScrollTime.current = now;
+                } else {
+                    // Unlock if at start
+                    onComplete();
+                }
+            }
+        };
 
-    // Scale: subtle entrance effect
-    const scale = useTransform(
-        scrollY,
-        [startScroll, arrivedScroll],
-        [0.95, 1]
-    );
+        // Add non-passive listener to block scroll
+        window.addEventListener("wheel", onWheel, { passive: false });
+        return () => window.removeEventListener("wheel", onWheel);
+    }, [step, onComplete, setStep]);
 
     return (
-        <motion.div
-            style={{
-                opacity,
-                y,
-                scale,
-                position: 'absolute',
-                left: '50%',
-                top: '50%',
-                translateX: '-50%',
-                translateY: '-50%',
-            }}
-            className="will-change-transform"
-        >
-            <p className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight text-white text-center leading-tight whitespace-pre-line px-6">
-                {text}
-            </p>
-        </motion.div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <div className="relative w-full max-w-4xl h-full flex items-center justify-center">
+                {lines.map((text, i) => (
+                    <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{
+                            opacity: step === i ? 1 : 0,
+                            y: step === i ? 0 : step > i ? -50 : 50,
+                            scale: step === i ? 1 : 0.95
+                        }}
+                        transition={{ duration: 0.5, ease: "circOut" }}
+                        className="absolute w-full px-6"
+                    >
+                        <p
+                            className={`text-center font-black tracking-tight whitespace-pre-line
+                  ${i === lines.length - 1
+                                    ? "text-5xl md:text-7xl text-transparent bg-clip-text bg-gradient-to-r from-[#bd00ff] to-blue-500"
+                                    : "text-4xl md:text-6xl text-white"
+                                }`}
+                        >
+                            {text}
+                        </p>
+                    </motion.div>
+                ))}
+            </div>
+
+            {/* Progress Indicator */}
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
+                {lines.map((_, i) => (
+                    <div
+                        key={i}
+                        className={`w-2 h-2 rounded-full transition-colors duration-300 ${i === step ? "bg-[#bd00ff]" : "bg-white/20"}`}
+                    />
+                ))}
+            </div>
+        </div>
     );
 };
