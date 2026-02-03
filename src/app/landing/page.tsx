@@ -91,6 +91,7 @@ interface ChatWindowProps {
     onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onSubmit: (e: React.FormEvent) => void;
     onReset: () => void;
+    dragConstraints: React.RefObject<Element | null>;
 }
 
 const ChatWindow = ({
@@ -104,6 +105,7 @@ const ChatWindow = ({
     onInputChange,
     onSubmit,
     onReset,
+    dragConstraints,
 }: ChatWindowProps) => {
     const isMobile = type === "mobile";
 
@@ -113,10 +115,14 @@ const ChatWindow = ({
             className={`absolute ${isMobile
                 ? "w-[280px] h-[550px] right-[10%] top-[10%]"
                 : "w-[600px] h-[400px] left-[10%] top-[20%]"
-                } bg-[#0a0a0a] rounded-xl border border-white/10 overflow-hidden shadow-2xl cursor-pointer transition-all duration-300 ${isActive
-                    ? "z-20 scale-105 border-[#bd00ff] shadow-[0_0_30px_rgba(189,0,255,0.2)]"
-                    : "z-10 scale-100 opacity-80 hover:opacity-100 grayscale hover:grayscale-0"
+                } bg-[#0a0a0a] rounded-xl border border-white/10 overflow-hidden shadow-2xl cursor-pointer transition-[box-shadow,border-color,filter] duration-300 ${isActive
+                    ? "z-20 border-[#bd00ff] shadow-[0_0_30px_rgba(189,0,255,0.2)]"
+                    : "z-10 opacity-80 hover:opacity-100 grayscale hover:grayscale-0"
                 }`}
+            drag
+            dragMomentum={false}
+            dragElastic={0}
+            dragConstraints={dragConstraints}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: isActive ? 1 : 0.8, scale: isActive ? 1.05 : 1 }}
             whileHover={{ scale: isActive ? 1.05 : 1.02 }}
@@ -206,6 +212,7 @@ export default function LandingPage() {
 
     // Random background "stuff"
     const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number }>>([]);
+    const desktopRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         // Generate static particles once
@@ -271,7 +278,7 @@ export default function LandingPage() {
         <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden font-sans selection:bg-[#bd00ff] selection:text-white">
             <Header />
 
-            <main className="relative pt-20 h-screen flex flex-col items-center justify-center overflow-hidden">
+            <main className="relative pt-20 min-h-screen flex flex-col items-center justify-center overflow-hidden">
                 {/* Background Grid & Particles */}
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(18,18,18,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(18,18,18,0.5)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_100%)] opacity-30 pointer-events-none" />
 
@@ -292,9 +299,33 @@ export default function LandingPage() {
                     />
                 ))}
 
+                {/* Hero Text */}
+                <div className="relative z-10 text-center mb-12 max-w-4xl px-6">
+                    <motion.h1
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        className="text-6xl md:text-8xl font-black tracking-tighter text-white mb-6 drop-shadow-[0_0_30px_rgba(189,0,255,0.5)]"
+                    >
+                        Beat the Gap <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#bd00ff] to-blue-600">
+                            with noCap
+                        </span>
+                    </motion.h1>
+                    <motion.p
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+                        className="text-xl md:text-2xl text-gray-400 font-light"
+                    >
+                        Understand slang, screenshots, and internet language — instantly.
+                    </motion.p>
+                </div>
+
 
                 {/* Fake Desktop Container */}
                 <motion.div
+                    ref={desktopRef}
                     initial={{ y: 50, opacity: 0, rotateX: 10 }}
                     animate={{ y: 0, opacity: 1, rotateX: 0 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
@@ -334,6 +365,7 @@ export default function LandingPage() {
                         }}
                         onSubmit={handleSubmit}
                         onReset={handleReset}
+                        dragConstraints={desktopRef}
                     />
 
                     {/* Mobile Window */}
@@ -350,6 +382,7 @@ export default function LandingPage() {
                         }}
                         onSubmit={handleSubmit}
                         onReset={handleReset}
+                        dragConstraints={desktopRef}
                     />
                 </motion.div>
 
