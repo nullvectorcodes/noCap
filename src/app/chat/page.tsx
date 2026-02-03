@@ -14,6 +14,7 @@ interface SlangDef {
 
 interface ParsedResult {
     sentence_meaning?: string;
+    tone?: string;
     terms?: SlangDef[];
 }
 
@@ -25,7 +26,24 @@ interface Message {
     extractedText?: string;
     parsed?: ParsedResult; // Structured data if parsing succeeds
     isError?: boolean;
+    suggestedReplies?: string[]; // Smart Reply suggestions
 }
+
+const getToneEmoji = (tone?: string) => {
+    switch (tone?.toLowerCase()) {
+        case "excited": return "🔥";
+        case "angry": return "😠";
+        case "frustrated": return "😒";
+        case "disappointed": return "😞";
+        case "sarcastic": return "🙃";
+        case "playful": return "😄";
+        case "happy": return "🙂";
+        case "confident": return "😎";
+        case "sad": return "😢";
+        case "neutral": return "😐";
+        default: return "😐";
+    }
+};
 
 const Typewriter = ({ words, className }: { words: string[], className?: string }) => {
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -83,6 +101,8 @@ export default function ChatPage() {
     const [targetLanguage, setTargetLanguage] = useState("English");
     const [showLanguageMenu, setShowLanguageMenu] = useState(false);
     const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+    const [loadingReplies, setLoadingReplies] = useState<string | null>(null);
+    const [notification, setNotification] = useState<string | null>(null);
 
     const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
@@ -295,6 +315,7 @@ export default function ChatPage() {
                             // Validate structure
                             if (jsonObj.terms || jsonObj.sentence_meaning) {
                                 parsedResult = {
+                                    tone: jsonObj.tone,
                                     sentence_meaning: jsonObj.sentence_meaning,
                                     terms: Array.isArray(jsonObj.terms) ? jsonObj.terms : []
                                 };
@@ -316,6 +337,11 @@ export default function ChatPage() {
 
             setMessages((prev) => [...prev, aiMsg]);
 
+            // Fetch Smart Replies if we have a successful parse
+            if (parsedResult && !data.error) {
+                fetchSmartReplies(aiMsg.id, userMsg.content, parsedResult);
+            }
+
         } catch (err) {
             setMessages((prev) => [...prev, {
                 id: (Date.now() + 1).toString(),
@@ -332,6 +358,45 @@ export default function ChatPage() {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             handleAnalyze();
+        }
+    };
+
+    const fetchSmartReplies = async (msgId: string, userSentence: string, parsed: ParsedResult) => {
+        setLoadingReplies(msgId);
+        try {
+            console.log("[Client] Fetching smart replies for:", msgId);
+            const res = await fetch("/api/smart-reply", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    sentence: userSentence,
+                    intent: parsed.sentence_meaning || "Casual conversation",
+                    slang: parsed.terms || [],
+                    tone: parsed.tone || "Neutral"
+                })
+            });
+            const data = await res.json();
+            console.log("[Client] Smart Replies received:", data);
+
+            if (data.suggestedReplies && data.suggestedReplies.length > 0) {
+                setMessages(prev => prev.map(m =>
+                    m.id === msgId ? { ...m, suggestedReplies: data.suggestedReplies } : m
+                ));
+            }
+        } catch (err) {
+            console.error("Failed to fetch smart replies", err);
+        } finally {
+            setLoadingReplies(null);
+        }
+    };
+
+    const handleReplyClick = async (reply: string) => {
+        try {
+            await navigator.clipboard.writeText(reply);
+            setNotification("Successfully copied to clipboard");
+            setTimeout(() => setNotification(null), 2000);
+        } catch (err) {
+            console.error("Failed to copy", err);
         }
     };
 
@@ -394,6 +459,15 @@ export default function ChatPage() {
                             transition={{ duration: 0.5 }}
                             className="flex flex-col items-center justify-center text-center space-y-6 pb-20"
                         >
+                            <div className={clsx(
+                                "fixed top-20 left-1/2 -translate-x-1/2 z-[60] px-4 py-2 rounded-full shadow-xl transition-all duration-300 pointer-events-none flex items-center gap-2",
+                                theme === 'dark' ? "bg-white text-black" : "bg-black text-white",
+                                notification ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+                            )}>
+                                <Check className="w-4 h-4" />
+                                <span className="text-sm font-medium">{notification}</span>
+                            </div>
+
                             <div className={clsx(
                                 "w-24 h-24 rounded-[2rem] flex items-center justify-center border ring-4 shadow-2xl relative overflow-hidden group transition-all duration-300",
                                 theme === 'dark'
@@ -489,9 +563,18 @@ export default function ChatPage() {
                                                 {/* Overall Sentence Meaning */}
                                                 {msg.parsed.sentence_meaning && (
                                                     <div className={clsx(
-                                                        "rounded-xl p-5 border shadow-lg transition-colors",
+                                                        "rounded-xl p-5 border shadow-lg transition-colors relative overflow-hidden",
                                                         theme === 'dark' ? "bg-gradient-to-br from-white/10 to-white/5 border-white/10" : "bg-gradient-to-br from-violet-50/50 to-fuchsia-50/50 border-violet-100"
                                                     )}>
+                                                        {/* Tone Badge */}
+                                                        {msg.parsed.tone && (
+                                                            <div className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/10 dark:bg-white/10 border border-black/5 dark:border-white/5 backdrop-blur-sm">
+                                                                <span className="text-sm">{getToneEmoji(msg.parsed.tone)}</span>
+                                                                <span className={clsx("text-[10px] font-bold uppercase tracking-wider", theme === 'dark' ? "text-neutral-300" : "text-neutral-700")}>
+                                                                    {msg.parsed.tone}
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                         <div className="flex items-center gap-2 mb-2">
                                                             <MessageSquareText className={clsx("w-4 h-4 opacity-80", theme === 'dark' ? "text-purple-300" : "text-violet-600")} />
                                                             <h3 className={clsx("text-xs font-bold uppercase tracking-widest", theme === 'dark' ? "text-neutral-400" : "text-violet-900/60")}>Translation</h3>
@@ -535,6 +618,32 @@ export default function ChatPage() {
                                                                 </div>
                                                             </div>
                                                         ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Smart Reply Suggestions */}
+                                                {msg.suggestedReplies && msg.suggestedReplies.length > 0 && (
+                                                    <div className="mt-6 pt-4 border-t border-white/5">
+                                                        <div className="flex items-center gap-2 mb-3">
+                                                            <MessageSquareText className="w-3.5 h-3.5 text-violet-400" />
+                                                            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Quick Replies</span>
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {msg.suggestedReplies.map((reply, idx) => (
+                                                                <button
+                                                                    key={idx}
+                                                                    onClick={() => handleReplyClick(reply)}
+                                                                    className={clsx(
+                                                                        "px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border shadow-md",
+                                                                        theme === 'dark'
+                                                                            ? "bg-violet-600 border-violet-500 text-white hover:bg-violet-500 hover:scale-105 active:scale-95 shadow-violet-900/40"
+                                                                            : "bg-violet-600 border-violet-500 text-white hover:bg-violet-700 hover:scale-105 active:scale-95 shadow-violet-200"
+                                                                    )}
+                                                                >
+                                                                    {reply}
+                                                                </button>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>

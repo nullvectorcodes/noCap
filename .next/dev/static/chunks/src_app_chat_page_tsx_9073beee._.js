@@ -32,6 +32,32 @@ var _s = __turbopack_context__.k.signature(), _s1 = __turbopack_context__.k.sign
 ;
 ;
 ;
+const getToneEmoji = (tone)=>{
+    switch(tone?.toLowerCase()){
+        case "excited":
+            return "🔥";
+        case "angry":
+            return "😠";
+        case "frustrated":
+            return "😒";
+        case "disappointed":
+            return "😞";
+        case "sarcastic":
+            return "🙃";
+        case "playful":
+            return "😄";
+        case "happy":
+            return "🙂";
+        case "confident":
+            return "😎";
+        case "sad":
+            return "😢";
+        case "neutral":
+            return "😐";
+        default:
+            return "😐";
+    }
+};
 const Typewriter = ({ words, className })=>{
     _s();
     const [currentWordIndex, setCurrentWordIndex] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0);
@@ -87,13 +113,13 @@ const Typewriter = ({ words, className })=>{
                 className: "w-[2px] h-[1em] bg-violet-400 inline-block ml-0.5 animate-pulse align-middle"
             }, void 0, false, {
                 fileName: "[project]/src/app/chat/page.tsx",
-                lineNumber: 71,
+                lineNumber: 89,
                 columnNumber: 13
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/chat/page.tsx",
-        lineNumber: 69,
+        lineNumber: 87,
         columnNumber: 9
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -110,6 +136,8 @@ function ChatPage() {
     const [targetLanguage, setTargetLanguage] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("English");
     const [showLanguageMenu, setShowLanguageMenu] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [theme, setTheme] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('dark');
+    const [loadingReplies, setLoadingReplies] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [notification, setNotification] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const toggleTheme = ()=>setTheme((prev)=>prev === 'dark' ? 'light' : 'dark');
     const LANGUAGES = [
         {
@@ -398,6 +426,7 @@ function ChatPage() {
                             // Validate structure
                             if (jsonObj.terms || jsonObj.sentence_meaning) {
                                 parsedResult = {
+                                    tone: jsonObj.tone,
                                     sentence_meaning: jsonObj.sentence_meaning,
                                     terms: Array.isArray(jsonObj.terms) ? jsonObj.terms : []
                                 };
@@ -419,6 +448,10 @@ function ChatPage() {
                     ...prev,
                     aiMsg
                 ]);
+            // Fetch Smart Replies if we have a successful parse
+            if (parsedResult && !data.error) {
+                fetchSmartReplies(aiMsg.id, userMsg.content, parsedResult);
+            }
         } catch (err) {
             setMessages((prev)=>[
                     ...prev,
@@ -439,6 +472,45 @@ function ChatPage() {
             handleAnalyze();
         }
     };
+    const fetchSmartReplies = async (msgId, userSentence, parsed)=>{
+        setLoadingReplies(msgId);
+        try {
+            console.log("[Client] Fetching smart replies for:", msgId);
+            const res = await fetch("/api/smart-reply", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    sentence: userSentence,
+                    intent: parsed.sentence_meaning || "Casual conversation",
+                    slang: parsed.terms || [],
+                    tone: parsed.tone || "Neutral"
+                })
+            });
+            const data = await res.json();
+            console.log("[Client] Smart Replies received:", data);
+            if (data.suggestedReplies && data.suggestedReplies.length > 0) {
+                setMessages((prev)=>prev.map((m)=>m.id === msgId ? {
+                            ...m,
+                            suggestedReplies: data.suggestedReplies
+                        } : m));
+            }
+        } catch (err) {
+            console.error("Failed to fetch smart replies", err);
+        } finally{
+            setLoadingReplies(null);
+        }
+    };
+    const handleReplyClick = async (reply)=>{
+        try {
+            await navigator.clipboard.writeText(reply);
+            setNotification("Successfully copied to clipboard");
+            setTimeout(()=>setNotification(null), 2000);
+        } catch (err) {
+            console.error("Failed to copy", err);
+        }
+    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
         className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("flex flex-col h-screen overflow-hidden relative font-sans selection:bg-violet-500/20 transition-colors duration-500", theme === 'dark' ? "bg-[#050505] text-white" : "bg-[#fafafa] text-neutral-900"),
         children: [
@@ -449,27 +521,27 @@ function ChatPage() {
                         className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("absolute top-[-10%] left-[10%] w-[50%] h-[50%] rounded-full blur-[120px] animate-pulse transition-colors duration-500", theme === 'dark' ? "bg-violet-600/20" : "bg-violet-400/10")
                     }, void 0, false, {
                         fileName: "[project]/src/app/chat/page.tsx",
-                        lineNumber: 346,
+                        lineNumber: 411,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("absolute bottom-[-10%] right-[10%] w-[50%] h-[50%] rounded-full blur-[120px] animate-pulse delay-1000 transition-colors duration-500", theme === 'dark' ? "bg-fuchsia-600/20" : "bg-fuchsia-400/10")
                     }, void 0, false, {
                         fileName: "[project]/src/app/chat/page.tsx",
-                        lineNumber: 350,
+                        lineNumber: 415,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("absolute top-[40%] left-[40%] w-[30%] h-[30%] rounded-full blur-[100px] transition-colors duration-500", theme === 'dark' ? "bg-indigo-600/10" : "bg-indigo-400/10")
                     }, void 0, false, {
                         fileName: "[project]/src/app/chat/page.tsx",
-                        lineNumber: 354,
+                        lineNumber: 419,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/chat/page.tsx",
-                lineNumber: 345,
+                lineNumber: 410,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("header", {
@@ -479,7 +551,7 @@ function ChatPage() {
                         className: "w-8"
                     }, void 0, false, {
                         fileName: "[project]/src/app/chat/page.tsx",
-                        lineNumber: 365,
+                        lineNumber: 430,
                         columnNumber: 17
                     }, this),
                     " ",
@@ -491,12 +563,12 @@ function ChatPage() {
                             children: ".nocap"
                         }, void 0, false, {
                             fileName: "[project]/src/app/chat/page.tsx",
-                            lineNumber: 368,
+                            lineNumber: 433,
                             columnNumber: 21
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/chat/page.tsx",
-                        lineNumber: 367,
+                        lineNumber: 432,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -506,24 +578,24 @@ function ChatPage() {
                             className: "w-4 h-4"
                         }, void 0, false, {
                             fileName: "[project]/src/app/chat/page.tsx",
-                            lineNumber: 378,
+                            lineNumber: 443,
                             columnNumber: 41
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$moon$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Moon$3e$__["Moon"], {
                             className: "w-4 h-4"
                         }, void 0, false, {
                             fileName: "[project]/src/app/chat/page.tsx",
-                            lineNumber: 378,
+                            lineNumber: 443,
                             columnNumber: 71
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/chat/page.tsx",
-                        lineNumber: 371,
+                        lineNumber: 436,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/chat/page.tsx",
-                lineNumber: 361,
+                lineNumber: 426,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -546,26 +618,50 @@ function ChatPage() {
                             className: "flex flex-col items-center justify-center text-center space-y-6 pb-20",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("fixed top-20 left-1/2 -translate-x-1/2 z-[60] px-4 py-2 rounded-full shadow-xl transition-all duration-300 pointer-events-none flex items-center gap-2", theme === 'dark' ? "bg-white text-black" : "bg-black text-white", notification ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"),
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Check$3e$__["Check"], {
+                                            className: "w-4 h-4"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/app/chat/page.tsx",
+                                            lineNumber: 467,
+                                            columnNumber: 33
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                            className: "text-sm font-medium",
+                                            children: notification
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/app/chat/page.tsx",
+                                            lineNumber: 468,
+                                            columnNumber: 33
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/src/app/chat/page.tsx",
+                                    lineNumber: 462,
+                                    columnNumber: 29
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("w-24 h-24 rounded-[2rem] flex items-center justify-center border ring-4 shadow-2xl relative overflow-hidden group transition-all duration-300", theme === 'dark' ? "bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 border-white/5 ring-white/5" : "bg-white border-violet-100 ring-violet-50"),
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("absolute inset-0 bg-gradient-to-tr to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500", theme === 'dark' ? "from-violet-500/20" : "from-violet-500/5")
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/chat/page.tsx",
-                                            lineNumber: 403,
+                                            lineNumber: 477,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$sparkles$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Sparkles$3e$__["Sparkles"], {
                                             className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("w-12 h-12 animate-[pulse_3s_ease-in-out_infinite]", theme === 'dark' ? "text-fuchsia-400 fill-fuchsia-400/20" : "text-fuchsia-500 fill-fuchsia-500/10")
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/chat/page.tsx",
-                                            lineNumber: 407,
+                                            lineNumber: 481,
                                             columnNumber: 33
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/chat/page.tsx",
-                                    lineNumber: 397,
+                                    lineNumber: 471,
                                     columnNumber: 29
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -576,7 +672,7 @@ function ChatPage() {
                                             children: "Decode the streets."
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/chat/page.tsx",
-                                            lineNumber: 413,
+                                            lineNumber: 487,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -587,7 +683,7 @@ function ChatPage() {
                                                     children: "Try searching:"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/chat/page.tsx",
-                                                    lineNumber: 420,
+                                                    lineNumber: 494,
                                                     columnNumber: 37
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(Typewriter, {
@@ -604,25 +700,25 @@ function ChatPage() {
                                                     className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("text-base font-mono font-medium", theme === 'dark' ? "text-violet-400" : "text-violet-600")
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/chat/page.tsx",
-                                                    lineNumber: 421,
+                                                    lineNumber: 495,
                                                     columnNumber: 37
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/chat/page.tsx",
-                                            lineNumber: 419,
+                                            lineNumber: 493,
                                             columnNumber: 33
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/chat/page.tsx",
-                                    lineNumber: 412,
+                                    lineNumber: 486,
                                     columnNumber: 29
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/chat/page.tsx",
-                            lineNumber: 391,
+                            lineNumber: 456,
                             columnNumber: 25
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$components$2f$AnimatePresence$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AnimatePresence"], {
@@ -654,12 +750,12 @@ function ChatPage() {
                                                     className: "w-auto h-auto max-h-48 max-w-full object-contain bg-black/50"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/chat/page.tsx",
-                                                    lineNumber: 453,
+                                                    lineNumber: 527,
                                                     columnNumber: 45
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                lineNumber: 452,
+                                                lineNumber: 526,
                                                 columnNumber: 41
                                             }, this),
                                             msg.extractedText && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -672,7 +768,7 @@ function ChatPage() {
                                                                 className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("w-3 h-3", theme === 'dark' ? "text-violet-400" : "text-violet-600")
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                                lineNumber: 461,
+                                                                lineNumber: 535,
                                                                 columnNumber: 49
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -680,13 +776,13 @@ function ChatPage() {
                                                                 children: "Detected Text"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                                lineNumber: 462,
+                                                                lineNumber: 536,
                                                                 columnNumber: 49
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                        lineNumber: 460,
+                                                        lineNumber: 534,
                                                         columnNumber: 45
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -694,13 +790,13 @@ function ChatPage() {
                                                         children: msg.extractedText
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                        lineNumber: 464,
+                                                        lineNumber: 538,
                                                         columnNumber: 45
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                lineNumber: 459,
+                                                lineNumber: 533,
                                                 columnNumber: 41
                                             }, this),
                                             msg.role === "ai" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -712,12 +808,12 @@ function ChatPage() {
                                                             className: "w-3.5 h-3.5 text-white"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/chat/page.tsx",
-                                                            lineNumber: 477,
+                                                            lineNumber: 551,
                                                             columnNumber: 49
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                        lineNumber: 473,
+                                                        lineNumber: 547,
                                                         columnNumber: 45
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -725,13 +821,13 @@ function ChatPage() {
                                                         children: "Analysis"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                        lineNumber: 479,
+                                                        lineNumber: 553,
                                                         columnNumber: 45
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                lineNumber: 472,
+                                                lineNumber: 546,
                                                 columnNumber: 41
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -740,8 +836,33 @@ function ChatPage() {
                                                     className: "flex flex-col gap-6",
                                                     children: [
                                                         msg.parsed.sentence_meaning && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                            className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("rounded-xl p-5 border shadow-lg transition-colors", theme === 'dark' ? "bg-gradient-to-br from-white/10 to-white/5 border-white/10" : "bg-gradient-to-br from-violet-50/50 to-fuchsia-50/50 border-violet-100"),
+                                                            className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("rounded-xl p-5 border shadow-lg transition-colors relative overflow-hidden", theme === 'dark' ? "bg-gradient-to-br from-white/10 to-white/5 border-white/10" : "bg-gradient-to-br from-violet-50/50 to-fuchsia-50/50 border-violet-100"),
                                                             children: [
+                                                                msg.parsed.tone && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                    className: "absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/10 dark:bg-white/10 border border-black/5 dark:border-white/5 backdrop-blur-sm",
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                            className: "text-sm",
+                                                                            children: getToneEmoji(msg.parsed.tone)
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/src/app/chat/page.tsx",
+                                                                            lineNumber: 572,
+                                                                            columnNumber: 65
+                                                                        }, this),
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                            className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("text-[10px] font-bold uppercase tracking-wider", theme === 'dark' ? "text-neutral-300" : "text-neutral-700"),
+                                                                            children: msg.parsed.tone
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/src/app/chat/page.tsx",
+                                                                            lineNumber: 573,
+                                                                            columnNumber: 65
+                                                                        }, this)
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/src/app/chat/page.tsx",
+                                                                    lineNumber: 571,
+                                                                    columnNumber: 61
+                                                                }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                     className: "flex items-center gap-2 mb-2",
                                                                     children: [
@@ -749,7 +870,7 @@ function ChatPage() {
                                                                             className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("w-4 h-4 opacity-80", theme === 'dark' ? "text-purple-300" : "text-violet-600")
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/app/chat/page.tsx",
-                                                                            lineNumber: 496,
+                                                                            lineNumber: 579,
                                                                             columnNumber: 61
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -757,13 +878,13 @@ function ChatPage() {
                                                                             children: "Translation"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/app/chat/page.tsx",
-                                                                            lineNumber: 497,
+                                                                            lineNumber: 580,
                                                                             columnNumber: 61
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/app/chat/page.tsx",
-                                                                    lineNumber: 495,
+                                                                    lineNumber: 578,
                                                                     columnNumber: 57
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -771,13 +892,13 @@ function ChatPage() {
                                                                     children: msg.parsed.sentence_meaning
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/chat/page.tsx",
-                                                                    lineNumber: 499,
+                                                                    lineNumber: 582,
                                                                     columnNumber: 57
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/app/chat/page.tsx",
-                                                            lineNumber: 491,
+                                                            lineNumber: 565,
                                                             columnNumber: 53
                                                         }, this),
                                                         msg.parsed.terms && msg.parsed.terms.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -790,12 +911,12 @@ function ChatPage() {
                                                                         children: "Breakdown"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                                        lineNumber: 509,
+                                                                        lineNumber: 592,
                                                                         columnNumber: 61
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/chat/page.tsx",
-                                                                    lineNumber: 508,
+                                                                    lineNumber: 591,
                                                                     columnNumber: 57
                                                                 }, this),
                                                                 msg.parsed.terms.map((item, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -809,7 +930,7 @@ function ChatPage() {
                                                                                         children: item.term
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                                                        lineNumber: 517,
+                                                                                        lineNumber: 600,
                                                                                         columnNumber: 69
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -817,13 +938,13 @@ function ChatPage() {
                                                                                         children: "Slang"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                                                        lineNumber: 520,
+                                                                                        lineNumber: 603,
                                                                                         columnNumber: 69
                                                                                     }, this)
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                                                lineNumber: 516,
+                                                                                lineNumber: 599,
                                                                                 columnNumber: 65
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -831,7 +952,7 @@ function ChatPage() {
                                                                                 children: item.meaning
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                                                lineNumber: 523,
+                                                                                lineNumber: 606,
                                                                                 columnNumber: 65
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -841,7 +962,7 @@ function ChatPage() {
                                                                                         className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("w-4 h-4 flex-shrink-0 mt-0.5 opacity-70", theme === 'dark' ? "text-purple-400" : "text-violet-600")
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                                                        lineNumber: 531,
+                                                                                        lineNumber: 614,
                                                                                         columnNumber: 69
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -853,31 +974,80 @@ function ChatPage() {
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                                                        lineNumber: 532,
+                                                                                        lineNumber: 615,
                                                                                         columnNumber: 69
                                                                                     }, this)
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                                                lineNumber: 527,
+                                                                                lineNumber: 610,
                                                                                 columnNumber: 65
                                                                             }, this)
                                                                         ]
                                                                     }, idx, true, {
                                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                                        lineNumber: 512,
+                                                                        lineNumber: 595,
                                                                         columnNumber: 61
                                                                     }, this))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/app/chat/page.tsx",
-                                                            lineNumber: 507,
+                                                            lineNumber: 590,
+                                                            columnNumber: 53
+                                                        }, this),
+                                                        msg.suggestedReplies && msg.suggestedReplies.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "mt-6 pt-4 border-t border-white/5",
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                    className: "flex items-center gap-2 mb-3",
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$message$2d$square$2d$text$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__MessageSquareText$3e$__["MessageSquareText"], {
+                                                                            className: "w-3.5 h-3.5 text-violet-400"
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/src/app/chat/page.tsx",
+                                                                            lineNumber: 628,
+                                                                            columnNumber: 61
+                                                                        }, this),
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                            className: "text-[10px] font-bold text-neutral-500 uppercase tracking-widest",
+                                                                            children: "Quick Replies"
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/src/app/chat/page.tsx",
+                                                                            lineNumber: 629,
+                                                                            columnNumber: 61
+                                                                        }, this)
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/src/app/chat/page.tsx",
+                                                                    lineNumber: 627,
+                                                                    columnNumber: 57
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                    className: "flex flex-wrap gap-2",
+                                                                    children: msg.suggestedReplies.map((reply, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                                            onClick: ()=>handleReplyClick(reply),
+                                                                            className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border shadow-md", theme === 'dark' ? "bg-violet-600 border-violet-500 text-white hover:bg-violet-500 hover:scale-105 active:scale-95 shadow-violet-900/40" : "bg-violet-600 border-violet-500 text-white hover:bg-violet-700 hover:scale-105 active:scale-95 shadow-violet-200"),
+                                                                            children: reply
+                                                                        }, idx, false, {
+                                                                            fileName: "[project]/src/app/chat/page.tsx",
+                                                                            lineNumber: 633,
+                                                                            columnNumber: 65
+                                                                        }, this))
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/app/chat/page.tsx",
+                                                                    lineNumber: 631,
+                                                                    columnNumber: 57
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/app/chat/page.tsx",
+                                                            lineNumber: 626,
                                                             columnNumber: 53
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/chat/page.tsx",
-                                                    lineNumber: 487,
+                                                    lineNumber: 561,
                                                     columnNumber: 45
                                                 }, this) : // Fallback / Raw Text
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -885,28 +1055,28 @@ function ChatPage() {
                                                     children: msg.content
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/chat/page.tsx",
-                                                    lineNumber: 543,
+                                                    lineNumber: 652,
                                                     columnNumber: 45
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                lineNumber: 483,
+                                                lineNumber: 557,
                                                 columnNumber: 37
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/chat/page.tsx",
-                                        lineNumber: 443,
+                                        lineNumber: 517,
                                         columnNumber: 33
                                     }, this)
                                 }, msg.id, false, {
                                     fileName: "[project]/src/app/chat/page.tsx",
-                                    lineNumber: 433,
+                                    lineNumber: 507,
                                     columnNumber: 29
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/src/app/chat/page.tsx",
-                            lineNumber: 431,
+                            lineNumber: 505,
                             columnNumber: 21
                         }, this),
                         loading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].div, {
@@ -927,27 +1097,27 @@ function ChatPage() {
                                                 className: "w-1.5 h-1.5 bg-neutral-600 rounded-full animate-pulse"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                lineNumber: 566,
+                                                lineNumber: 675,
                                                 columnNumber: 37
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "w-1.5 h-1.5 bg-neutral-600 rounded-full animate-pulse delay-75"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                lineNumber: 567,
+                                                lineNumber: 676,
                                                 columnNumber: 37
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "w-1.5 h-1.5 bg-neutral-600 rounded-full animate-pulse delay-150"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                lineNumber: 568,
+                                                lineNumber: 677,
                                                 columnNumber: 37
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/chat/page.tsx",
-                                        lineNumber: 565,
+                                        lineNumber: 674,
                                         columnNumber: 33
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -955,18 +1125,18 @@ function ChatPage() {
                                         children: loadingText
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/chat/page.tsx",
-                                        lineNumber: 570,
+                                        lineNumber: 679,
                                         columnNumber: 33
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/chat/page.tsx",
-                                lineNumber: 564,
+                                lineNumber: 673,
                                 columnNumber: 29
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/chat/page.tsx",
-                            lineNumber: 559,
+                            lineNumber: 668,
                             columnNumber: 25
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -974,18 +1144,18 @@ function ChatPage() {
                             className: "h-0"
                         }, void 0, false, {
                             fileName: "[project]/src/app/chat/page.tsx",
-                            lineNumber: 575,
+                            lineNumber: 684,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/chat/page.tsx",
-                    lineNumber: 384,
+                    lineNumber: 449,
                     columnNumber: 17
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/chat/page.tsx",
-                lineNumber: 383,
+                lineNumber: 448,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1000,7 +1170,7 @@ function ChatPage() {
                                     className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("absolute inset-0 backdrop-blur-xl rounded-full -m-2 opacity-90 transition-colors", theme === 'dark' ? "bg-[#050505]/50" : "bg-[#fafafa]/50")
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/chat/page.tsx",
-                                    lineNumber: 583,
+                                    lineNumber: 692,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1017,7 +1187,7 @@ function ChatPage() {
                                             }
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/chat/page.tsx",
-                                            lineNumber: 593,
+                                            lineNumber: 702,
                                             columnNumber: 29
                                         }, this),
                                         imagePreview && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1031,7 +1201,7 @@ function ChatPage() {
                                                         className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("h-16 w-auto rounded-lg border shadow-xl object-cover", theme === 'dark' ? "border-white/10 bg-neutral-900" : "border-neutral-200 bg-white")
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                        lineNumber: 607,
+                                                        lineNumber: 716,
                                                         columnNumber: 41
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1041,23 +1211,23 @@ function ChatPage() {
                                                             className: "w-3 h-3"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/chat/page.tsx",
-                                                            lineNumber: 609,
+                                                            lineNumber: 718,
                                                             columnNumber: 45
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                        lineNumber: 608,
+                                                        lineNumber: 717,
                                                         columnNumber: 41
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                lineNumber: 606,
+                                                lineNumber: 715,
                                                 columnNumber: 37
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/chat/page.tsx",
-                                            lineNumber: 605,
+                                            lineNumber: 714,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1075,7 +1245,7 @@ function ChatPage() {
                                             }
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/chat/page.tsx",
-                                            lineNumber: 615,
+                                            lineNumber: 724,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1093,12 +1263,12 @@ function ChatPage() {
                                                 className: "w-4 h-4"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                lineNumber: 648,
+                                                lineNumber: 757,
                                                 columnNumber: 33
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/chat/page.tsx",
-                                            lineNumber: 633,
+                                            lineNumber: 742,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1109,12 +1279,12 @@ function ChatPage() {
                                                 className: "w-4 h-4"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                lineNumber: 659,
+                                                lineNumber: 768,
                                                 columnNumber: 33
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/chat/page.tsx",
-                                            lineNumber: 651,
+                                            lineNumber: 760,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1129,7 +1299,7 @@ function ChatPage() {
                                                             className: "w-4 h-4"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/chat/page.tsx",
-                                                            lineNumber: 673,
+                                                            lineNumber: 782,
                                                             columnNumber: 37
                                                         }, this),
                                                         targetLanguage !== "English" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1137,13 +1307,13 @@ function ChatPage() {
                                                             children: LANGUAGES.find((l)=>l.value === targetLanguage)?.code
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/chat/page.tsx",
-                                                            lineNumber: 675,
+                                                            lineNumber: 784,
                                                             columnNumber: 41
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/chat/page.tsx",
-                                                    lineNumber: 663,
+                                                    lineNumber: 772,
                                                     columnNumber: 33
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$components$2f$AnimatePresence$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AnimatePresence"], {
@@ -1154,7 +1324,7 @@ function ChatPage() {
                                                                 onClick: ()=>setShowLanguageMenu(false)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                                lineNumber: 684,
+                                                                lineNumber: 793,
                                                                 columnNumber: 45
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].div, {
@@ -1182,12 +1352,12 @@ function ChatPage() {
                                                                             children: "Translate to"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/app/chat/page.tsx",
-                                                                            lineNumber: 698,
+                                                                            lineNumber: 807,
                                                                             columnNumber: 53
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                                        lineNumber: 697,
+                                                                        lineNumber: 806,
                                                                         columnNumber: 49
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1204,37 +1374,37 @@ function ChatPage() {
                                                                                         className: "w-3.5 h-3.5"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                                                        lineNumber: 716,
+                                                                                        lineNumber: 825,
                                                                                         columnNumber: 95
                                                                                     }, this)
                                                                                 ]
                                                                             }, lang.code, true, {
                                                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                                                lineNumber: 702,
+                                                                                lineNumber: 811,
                                                                                 columnNumber: 57
                                                                             }, this))
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/chat/page.tsx",
-                                                                        lineNumber: 700,
+                                                                        lineNumber: 809,
                                                                         columnNumber: 49
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                                lineNumber: 688,
+                                                                lineNumber: 797,
                                                                 columnNumber: 45
                                                             }, this)
                                                         ]
                                                     }, void 0, true)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/chat/page.tsx",
-                                                    lineNumber: 681,
+                                                    lineNumber: 790,
                                                     columnNumber: 33
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/chat/page.tsx",
-                                            lineNumber: 662,
+                                            lineNumber: 771,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1245,30 +1415,30 @@ function ChatPage() {
                                                 className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])("w-3.5 h-3.5 border-2 border-t-transparent rounded-full animate-spin", theme === 'dark' ? "border-neutral-400" : "border-neutral-500")
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                lineNumber: 737,
+                                                lineNumber: 846,
                                                 columnNumber: 37
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$up$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowUp$3e$__["ArrowUp"], {
                                                 className: "w-4 h-4 stroke-[3]"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/chat/page.tsx",
-                                                lineNumber: 739,
+                                                lineNumber: 848,
                                                 columnNumber: 37
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/chat/page.tsx",
-                                            lineNumber: 726,
+                                            lineNumber: 835,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/chat/page.tsx",
-                                    lineNumber: 587,
+                                    lineNumber: 696,
                                     columnNumber: 25
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/chat/page.tsx",
-                            lineNumber: 582,
+                            lineNumber: 691,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1276,28 +1446,28 @@ function ChatPage() {
                             children: "Powered by Local LM Studio"
                         }, void 0, false, {
                             fileName: "[project]/src/app/chat/page.tsx",
-                            lineNumber: 744,
+                            lineNumber: 853,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/chat/page.tsx",
-                    lineNumber: 581,
+                    lineNumber: 690,
                     columnNumber: 17
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/chat/page.tsx",
-                lineNumber: 580,
+                lineNumber: 689,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/chat/page.tsx",
-        lineNumber: 339,
+        lineNumber: 404,
         columnNumber: 9
     }, this);
 }
-_s1(ChatPage, "Ht4H/762KNwqPVSYwMRpG1/SV74=");
+_s1(ChatPage, "b9xDF2EydNrOJrA92ebhNRs3RTE=");
 _c1 = ChatPage;
 var _c, _c1;
 __turbopack_context__.k.register(_c, "Typewriter");

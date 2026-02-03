@@ -131,10 +131,9 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$convex$2f$di
 ;
 // Convex Deployment URL (ends in .convex.cloud) is required for mutations/queries
 // Convex Site URL (ends in .convex.site) is only for custom HTTP actions
-const rawUrl = process.env.NEXT_PUBLIC_CONVEX_URL || process.env.CONVEX_DEPLOYMENT_URL || process.env.CONVEX_SITE_URL;
-if (!rawUrl) {
-    throw new Error("Convex URL is not set. Please add NEXT_PUBLIC_CONVEX_URL to .env.local");
-}
+const rawUrl = ("TURBOPACK compile-time value", "https://diligent-monitor-793.convex.cloud") || process.env.CONVEX_DEPLOYMENT_URL || process.env.CONVEX_SITE_URL;
+if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+;
 // Auto-correct .site to .cloud if using for mutations
 const convexUrl = rawUrl.replace(".convex.site", ".convex.cloud");
 const convex = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$convex$2f$dist$2f$esm$2f$browser$2f$http_client$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["ConvexHttpClient"](convexUrl, {

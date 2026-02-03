@@ -1,4 +1,10 @@
 {
+  "/api/auth/login/route": "app/api/auth/login/route.js",
   "/api/chat/route": "app/api/chat/route.js",
-  "/chat/page": "app/chat/page.js"
+  "/api/smart-reply/route": "app/api/smart-reply/route.js",
+  "/auth/callback/route": "app/auth/callback/route.js",
+  "/auth/logout/route": "app/auth/logout/route.js",
+  "/chat/page": "app/chat/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/page": "app/page.js"
 }

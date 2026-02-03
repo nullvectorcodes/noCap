@@ -61,6 +61,7 @@ export async function POST(req: Request) {
 
             // Construct frontend-compatible JSON
             const responseData = {
+                tone: "Confident", // DB matches are always confident/verified
                 sentence_meaning: "Verified Database Result", // Or generic intent
                 terms: [{
                     term: dbSlang.matchedTerm,
@@ -80,8 +81,8 @@ export async function POST(req: Request) {
         const rawLlmReply = await analyzeText(userMessage, language);
 
         // Attempt to parse and transform the LLM's new format to the frontend's old format
-        // LLM outputs: { sentenceIntent, slang: [] }
-        // Frontend wants: { sentence_meaning, terms: [] }
+        // LLM outputs: { tone, sentenceIntent, slang: [] }
+        // Frontend wants: { tone, sentence_meaning, terms: [] }
         let finalReply = rawLlmReply;
         try {
             const cleanJson = rawLlmReply.replace(/```json/g, "").replace(/```/g, "").trim();
@@ -89,6 +90,7 @@ export async function POST(req: Request) {
 
             if (parsed.sentenceIntent || parsed.slang) {
                 const transformed = {
+                    tone: parsed.tone || "Neutral",
                     sentence_meaning: parsed.sentenceIntent || "Analysis complete.",
                     terms: Array.isArray(parsed.slang) ? parsed.slang.map((s: any) => ({
                         term: s.term,

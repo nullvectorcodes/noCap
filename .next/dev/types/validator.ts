@@ -128,6 +128,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../../src/app/api/smart-reply/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/smart-reply">> = Specific
+  const handler = {} as typeof import("../../../src/app/api/smart-reply/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../../src/app/auth/callback/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/auth/callback">> = Specific
