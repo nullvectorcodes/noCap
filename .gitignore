@@ -1,5 +1,11 @@
 # Node
 node_modules/
+dist/
+build/
+.env
+*.log
+*.zip
+*.mp4
 npm-debug.log
 
 # Env
